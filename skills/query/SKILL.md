@@ -1,5 +1,6 @@
 ---
 name: 0xarchive
+version: 1.0.0
 description: >
   Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3.
   Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
