@@ -1,6 +1,6 @@
 # 0xArchive Skill
 
-A standalone skill that teaches Claude how to query the [0xArchive](https://0xarchive.io) REST API for historical crypto market data across Hyperliquid, Lighter.xyz, and HIP-3.
+A Claude Code plugin that teaches Claude how to query the [0xArchive](https://0xarchive.io) REST API for historical crypto market data across Hyperliquid, Lighter.xyz, and HIP-3.
 
 No dependencies required -- uses `curl` directly from the shell.
 
@@ -14,13 +14,13 @@ No dependencies required -- uses `curl` directly from the shell.
 - **Liquidations** -- By symbol or user address
 - **Data Quality** -- Coverage, latency, SLA, incidents
 
-## Install for Claude Code
+## Install as Plugin
 
-Symlink the skill into your project's `.claude/skills/` directory:
+Clone the repo and point Claude Code at it:
 
 ```bash
-mkdir -p .claude/skills/0xarchive
-ln -s ../../../skills/0xarchive-skill/SKILL.md .claude/skills/0xarchive/SKILL.md
+git clone https://github.com/0xArchiveIO/0xarchive-skill.git
+claude --plugin-dir ./0xarchive-skill
 ```
 
 Set your API key:
@@ -29,27 +29,24 @@ Set your API key:
 export OXARCHIVE_API_KEY="your-api-key"
 ```
 
-Then use `/0xarchive` in Claude Code, e.g.:
+Then use `/0xarchive:query` in Claude Code, e.g.:
 
 ```
-/0xarchive BTC funding rate
-/0xarchive ETH 4h candles last week
-/0xarchive system health status
+/0xarchive:query BTC funding rate
+/0xarchive:query ETH 4h candles last week
+/0xarchive:query system health status
 ```
 
-## Install for OpenClaw
+## Install as Standalone Skill
+
+Alternatively, copy the skill directly into your project:
 
 ```bash
-openclaw install 0xarchive
+mkdir -p .claude/skills/0xarchive
+cp 0xarchive-skill/skills/query/SKILL.md .claude/skills/0xarchive/SKILL.md
 ```
 
-Or add to your `openclaw.toml`:
-
-```toml
-[skills.0xarchive]
-source = "clawhub:0xarchive/0xarchive"
-env = ["OXARCHIVE_API_KEY"]
-```
+With the standalone approach, the skill is invoked as `/0xarchive` (no namespace prefix).
 
 ## Requirements
 
