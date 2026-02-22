@@ -171,7 +171,7 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 | Free | $0 | BTC only (HIP-3: km:US500 only) | 20 levels | -- | 30 days | 15 RPS |
 | Build | $49/mo | All | 50 levels | checkpoint, 30s, 10s | 1 year | 50 RPS |
 | Pro | $199/mo | All | 100 levels | + 1s | Full history | 150 RPS |
-| Enterprise | $499/mo | All | Full depth | + tick | Full history | Custom |
+| Enterprise | Custom | All | Full depth | + tick | Full history | Custom |
 
 ## Error Handling
 
@@ -232,3 +232,4 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/data-quality/coverage/hyperliquid/BTC" | jq '.'
 ```
+
