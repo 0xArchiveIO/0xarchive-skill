@@ -9,44 +9,37 @@ No dependencies required -- uses `curl` directly from the shell.
 - **Orderbooks** -- L2 snapshots with configurable depth and granularity
 - **Trades** -- Individual fills with maker/taker details
 - **Candles** -- OHLCV aggregations (1m to 1w intervals)
-- **Funding Rates** -- Historical and current
-- **Open Interest** -- Historical and current
-- **Liquidations** -- By symbol or user address
+- **Funding Rates** -- Historical and current, with aggregation intervals
+- **Open Interest** -- Historical and current, with aggregation intervals
+- **Liquidations** -- By symbol, by user address, aggregated volume
+- **Price History** -- Mark, oracle, and mid price over time
+- **Freshness** -- Per-data-type lag and last-updated timestamps
+- **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
 - **Data Quality** -- Coverage, latency, SLA, incidents
 
-## Install as Plugin
+## Install
 
-Clone the repo and point Claude Code at it:
+Copy the skill into your project's `.claude/skills` directory:
 
 ```bash
 git clone https://github.com/0xArchiveIO/0xarchive-skill.git
-claude --plugin-dir ./0xarchive-skill
+mkdir -p .claude/skills/0xarchive
+cp 0xarchive-skill/skills/query/SKILL.md .claude/skills/0xarchive/SKILL.md
 ```
 
 Set your API key:
 
 ```bash
-export OXARCHIVE_API_KEY="your-api-key"
+export OXARCHIVE_API_KEY="0xa_your_api_key"
 ```
 
-Then use `/0xarchive:query` in Claude Code, e.g.:
+Then use `/0xarchive` in Claude Code, e.g.:
 
 ```
-/0xarchive:query BTC funding rate
-/0xarchive:query ETH 4h candles last week
-/0xarchive:query system health status
+/0xarchive BTC funding rate
+/0xarchive ETH 4h candles last week
+/0xarchive system health status
 ```
-
-## Install as Standalone Skill
-
-Alternatively, copy the skill directly into your project:
-
-```bash
-mkdir -p .claude/skills/0xarchive
-cp 0xarchive-skill/skills/query/SKILL.md .claude/skills/0xarchive/SKILL.md
-```
-
-With the standalone approach, the skill is invoked as `/0xarchive` (no namespace prefix).
 
 ## Requirements
 

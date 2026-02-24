@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.0.0
+version: 1.1.0
 description: >
   Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3.
   Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
@@ -72,11 +72,15 @@ Every response follows this shape:
 | `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor` | Trade history |
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles |
 | `GET /funding/{symbol}/current` | -- | Current funding rate |
-| `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor` | Funding rate history |
+| `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding rate history |
 | `GET /openinterest/{symbol}/current` | -- | Current open interest |
-| `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor` | OI history |
+| `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
 | `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events |
+| `GET /liquidations/{symbol}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Aggregated liquidation volume (USD) |
 | `GET /liquidations/user/{address}` | `start`, `end`, `limit`, `cursor`, `coin` | Liquidations for a user |
+| `GET /freshness/{symbol}` | -- | Data freshness per data type |
+| `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI, volume, liquidations) |
+| `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
@@ -92,13 +96,16 @@ Coin names are **case-sensitive** (e.g., `km:US500`). No liquidation endpoints. 
 | `GET /trades/{coin}/recent` | `limit` | Recent trades (no time range needed) |
 | `GET /candles/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles |
 | `GET /funding/{coin}/current` | -- | Current funding rate |
-| `GET /funding/{coin}` | `start`, `end`, `limit`, `cursor` | Funding history |
+| `GET /funding/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history |
 | `GET /openinterest/{coin}/current` | -- | Current OI |
-| `GET /openinterest/{coin}` | `start`, `end`, `limit`, `cursor` | OI history |
+| `GET /openinterest/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
+| `GET /freshness/{coin}` | -- | Data freshness per data type |
+| `GET /summary/{coin}` | -- | Combined market summary (price, funding, OI) |
+| `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
 
 ### Lighter (`/v1/lighter`)
 
-Same data types as Hyperliquid (no liquidations). Adds `granularity` on orderbook history and `/recent` trades.
+Same data types as Hyperliquid except: no liquidations. Adds `granularity` on orderbook history and `/recent` trades.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -110,9 +117,12 @@ Same data types as Hyperliquid (no liquidations). Adds `granularity` on orderboo
 | `GET /trades/{symbol}/recent` | `limit` | Recent trades (no time range needed) |
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles |
 | `GET /funding/{symbol}/current` | -- | Current funding rate |
-| `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor` | Funding history |
+| `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history |
 | `GET /openinterest/{symbol}/current` | -- | Current OI |
-| `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor` | OI history |
+| `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
+| `GET /freshness/{symbol}` | -- | Data freshness per data type |
+| `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI) |
+| `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle price history |
 
 ### Data Quality (`/v1/data-quality`)
 
@@ -131,11 +141,11 @@ Same data types as Hyperliquid (no liquidations). Adds `granularity` on orderboo
 
 | Param | Type | Description |
 |-------|------|-------------|
-| `start` | int | Start timestamp (Unix ms). Required for history endpoints. |
-| `end` | int | End timestamp (Unix ms). Required for history endpoints. |
+| `start` | int | Start timestamp (Unix ms). Defaults to 24h ago. |
+| `end` | int | End timestamp (Unix ms). Defaults to now. |
 | `limit` | int | Max records. Default 100, max 1000 (max 10000 for candles). |
 | `cursor` | string | Pagination cursor from `meta.next_cursor`. |
-| `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. |
+| `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. For OI/funding: `5m`, `15m`, `30m`, `1h`, `4h`, `1d`. Omit for raw data. |
 | `depth` | int | Orderbook depth (number of price levels per side). |
 | `granularity` | string | Lighter orderbook resolution: `checkpoint` (default), `30s`, `10s`, `1s`, `tick`. |
 
@@ -183,7 +193,7 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 | 404 | Symbol not found | Check coin name spelling and exchange |
 | 429 | Rate limited | Back off and retry |
 
-Error responses return `{ "success": false, "error": "description" }`.
+Error responses return `{ "code": 400, "error": "description" }`.
 
 ## Example Queries
 
@@ -210,6 +220,16 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/funding/BTC/current" | jq '.data'
 
+# BTC open interest aggregated to 1h intervals (last week)
+NOW=$(( $(date +%s) * 1000 )); WEEK_AGO=$(( NOW - 604800000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/openinterest/BTC?start=$WEEK_AGO&end=$NOW&interval=1h" | jq '.data'
+
+# ETH funding rates aggregated to 4h intervals (last 30 days)
+NOW=$(( $(date +%s) * 1000 )); MONTH_AGO=$(( NOW - 2592000000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/funding/ETH?start=$MONTH_AGO&end=$NOW&interval=4h" | jq '.data'
+
 # HIP-3 km:US500 candles (last 24h, 1h interval)
 NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
@@ -227,6 +247,24 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 # SLA report for current month
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/data-quality/sla" | jq '.'
+
+# BTC market summary (price, funding, OI, volume, liquidations in one call)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/summary/BTC" | jq '.data'
+
+# BTC data freshness (lag per data type)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/freshness/BTC" | jq '.data'
+
+# BTC price history (mark/oracle/mid) aggregated to 1h
+NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/prices/BTC?start=$DAY_AGO&end=$NOW&interval=1h" | jq '.data'
+
+# BTC liquidation volume aggregated to 4h buckets
+NOW=$(( $(date +%s) * 1000 )); WEEK_AGO=$(( NOW - 604800000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/liquidations/BTC/volume?start=$WEEK_AGO&end=$NOW&interval=4h" | jq '.data'
 
 # Data coverage for Hyperliquid BTC
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
