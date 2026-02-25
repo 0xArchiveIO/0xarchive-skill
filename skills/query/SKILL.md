@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.1.0
+version: 1.2.0
 description: >
   Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3.
   Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
@@ -136,6 +136,22 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 | `GET /incidents/{id}` | -- | Single incident |
 | `GET /latency` | -- | Ingestion latency metrics |
 | `GET /sla` | `year`, `month` | SLA compliance report |
+
+### Web3 Authentication (`/v1`)
+
+Get API keys programmatically using an Ethereum wallet (SIWE). No API key required for these endpoints.
+
+| Endpoint | Params | Notes |
+|----------|--------|-------|
+| `POST /auth/web3/challenge` | `address` (wallet address) | Returns SIWE message to sign |
+| `POST /web3/signup` | `message`, `signature` | Returns free-tier API key |
+| `POST /web3/keys` | `message`, `signature` | List all keys for wallet |
+| `POST /web3/keys/revoke` | `message`, `signature`, `key_id` | Revoke a key |
+| `POST /web3/subscribe` | `tier` (`build` or `pro`), `payment-signature` header | x402 USDC subscription (see flow below) |
+
+**Free-tier flow:** Call `/auth/web3/challenge` with wallet address → sign the returned message with `personal_sign` (EIP-191) → submit to `/web3/signup` with the message and signature → receive API key.
+
+**Paid-tier flow (x402):** POST `/web3/subscribe` with `{ "tier": "build" }` → server returns 402 with pricing/payment details → sign USDC transfer (EIP-3009 on Base) → retry with `payment-signature` header → receive API key + subscription.
 
 ## Common Parameters
 
