@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.3.0
+version: 1.5.0
 description: >
   Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3.
   Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
@@ -27,7 +27,7 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" "https://api.0xarchive.io/v1/..."
 | Exchange | Path prefix | Coin format | Examples |
 |----------|-------------|-------------|---------|
 | Hyperliquid | `/v1/hyperliquid` | UPPERCASE | `BTC`, `ETH`, `SOL` |
-| HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `prefix:NAME` | `km:US500`, `xyz:XYZ100` |
+| HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `km:US500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
 | Lighter | `/v1/lighter` | UPPERCASE | `BTC`, `ETH` |
 
 Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is.
@@ -81,10 +81,16 @@ Every response follows this shape:
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI, volume, liquidations) |
 | `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
+| `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution (Build+) |
+| `GET /orders/{symbol}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
+| `GET /orders/{symbol}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
+| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
+| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Build+) |
+| `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). No liquidation endpoints. Orderbook requires Pro+ tier.
+Coin names are **case-sensitive** (e.g., `km:US500`). Orderbook requires Pro+ tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -99,9 +105,17 @@ Coin names are **case-sensitive** (e.g., `km:US500`). No liquidation endpoints. 
 | `GET /funding/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history |
 | `GET /openinterest/{coin}/current` | -- | Current OI |
 | `GET /openinterest/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
+| `GET /liquidations/{coin}` | `start`, `end`, `limit`, `cursor` | Liquidation events |
+| `GET /liquidations/{coin}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Aggregated liquidation volume (USD) |
 | `GET /freshness/{coin}` | -- | Data freshness per data type |
 | `GET /summary/{coin}` | -- | Combined market summary (price, funding, OI) |
 | `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
+| `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution (Build+) |
+| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
+| `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
+| `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
+| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Build+) |
+| `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
 
 ### Lighter (`/v1/lighter`)
 
@@ -123,6 +137,8 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI) |
 | `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle price history |
+| `GET /l3orderbook/{symbol}` | `timestamp`, `depth`, `account` | L3 order-level orderbook (Pro+) |
+| `GET /l3orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `granularity`, `account` | Historical L3 snapshots (Pro+) |
 
 ### Data Quality (`/v1/data-quality`)
 
@@ -136,6 +152,19 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 | `GET /incidents/{id}` | -- | Single incident |
 | `GET /latency` | -- | Ingestion latency metrics |
 | `GET /sla` | `year`, `month` | SLA compliance report |
+
+### WebSocket Channels
+
+Additional real-time channels available via WebSocket (`wss://api.0xarchive.io/ws?apiKey=KEY`):
+
+| Channel | Notes |
+|---------|-------|
+| `l4_diffs` | L4 orderbook diffs with user attribution (Build+, real-time only) |
+| `l4_orders` | Order lifecycle events with user attribution (Build+, real-time only) |
+| `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots (Pro+, historical only) |
+| `hip3_liquidations` | HIP-3 liquidation events with long/short direction (Build+, historical only) |
+| `hip3_l4_diffs` | HIP-3 L4 orderbook diffs (Build+, real-time only) |
+| `hip3_l4_orders` | HIP-3 order lifecycle events (Build+, real-time only) |
 
 ### Web3 Authentication (`/v1`)
 
@@ -190,6 +219,7 @@ Get API keys programmatically using an Ethereum wallet (SIWE). No API key requir
 | `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. For OI/funding: `5m`, `15m`, `30m`, `1h`, `4h`, `1d`. Omit for raw data. |
 | `depth` | int | Orderbook depth (number of price levels per side). |
 | `granularity` | string | Lighter orderbook resolution: `checkpoint` (default), `30s`, `10s`, `1s`, `tick`. |
+| `account` | int | Lighter L3 orderbook: filter by account index (e.g., `281474976710654` for LLP vault). |
 
 ## Smart Defaults
 

@@ -29,11 +29,14 @@ Then try: `/0xarchive BTC orderbook`
 ## Data Available
 
 - **Orderbooks** -- L2 snapshots with configurable depth and granularity
+- **L4 Orderbooks** -- User-attributed orderbook reconstruction, diffs, and checkpoints (Hyperliquid + HIP-3)
+- **L3 Orderbooks** -- Order-level orderbook snapshots with account filtering (Lighter)
+- **Orders** -- Order history with user attribution, order flow aggregation, TP/SL history (Hyperliquid + HIP-3)
 - **Trades** -- Individual fills with maker/taker details
 - **Candles** -- OHLCV aggregations (1m to 1w intervals)
 - **Funding Rates** -- Historical and current, with aggregation intervals
 - **Open Interest** -- Historical and current, with aggregation intervals
-- **Liquidations** -- By symbol, by user address, aggregated volume
+- **Liquidations** -- By symbol, by user address, aggregated volume (Hyperliquid + HIP-3)
 - **Price History** -- Mark, oracle, and mid price over time
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
@@ -62,6 +65,10 @@ Then use `/0xarchive` in Claude Code, e.g.:
 /0xarchive ETH 4h candles last week
 /0xarchive system health status
 ```
+
+## Bulk Data Downloads
+
+For large-scale data exports (full order books, complete trade history, etc.), use the S3 Parquet bulk export available at [0xarchive.io/data](https://0xarchive.io/data). The Data Explorer lets you select time ranges, symbols, and data types, then download compressed Parquet files directly.
 
 ## Requirements
 
