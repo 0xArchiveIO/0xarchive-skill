@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.5.0
+version: 1.6.0
 description: >
   Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3.
   Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
@@ -85,8 +85,11 @@ Every response follows this shape:
 | `GET /orders/{symbol}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
 | `GET /orders/{symbol}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
 | `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
-| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Build+) |
+| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Pro+) |
 | `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
+| `GET /orderbook/{symbol}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 (Build+) |
+| `GET /orderbook/{symbol}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
+| `GET /orderbook/{symbol}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
@@ -114,8 +117,11 @@ Coin names are **case-sensitive** (e.g., `km:US500`). Orderbook requires Pro+ ti
 | `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
 | `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
 | `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
-| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Build+) |
+| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Pro+) |
 | `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
+| `GET /orderbook/{coin}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 (Build+) |
+| `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
+| `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
 
 ### Lighter (`/v1/lighter`)
 
@@ -159,12 +165,12 @@ Additional real-time channels available via WebSocket (`wss://api.0xarchive.io/w
 
 | Channel | Notes |
 |---------|-------|
-| `l4_diffs` | L4 orderbook diffs with user attribution (Build+, real-time only) |
-| `l4_orders` | Order lifecycle events with user attribution (Build+, real-time only) |
+| `l4_diffs` | L4 orderbook diffs with user attribution (Pro+, real-time only) |
+| `l4_orders` | Order lifecycle events with user attribution (Pro+, real-time only) |
 | `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots (Pro+, historical only) |
 | `hip3_liquidations` | HIP-3 liquidation events with long/short direction (Build+, historical only) |
-| `hip3_l4_diffs` | HIP-3 L4 orderbook diffs (Build+, real-time only) |
-| `hip3_l4_orders` | HIP-3 order lifecycle events (Build+, real-time only) |
+| `hip3_l4_diffs` | HIP-3 L4 orderbook diffs (Pro+, real-time only) |
+| `hip3_l4_orders` | HIP-3 order lifecycle events (Pro+, real-time only) |
 
 ### Web3 Authentication (`/v1`)
 
