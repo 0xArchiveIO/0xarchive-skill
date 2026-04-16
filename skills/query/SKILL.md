@@ -238,6 +238,35 @@ DAY_AGO=$(( NOW - 86400000 ))
 
 For candles with no explicit range, default to a range that makes sense for the interval (e.g., last 7 days for 4h candles, last 30 days for 1d candles).
 
+## Trade Response Fields
+
+Each trade/fill record includes:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `coin` / `symbol` | string | Trading pair symbol |
+| `side` | string | `B` (buy) or `A`/`S` (sell) |
+| `price` | string | Execution price |
+| `size` | string | Trade size |
+| `timestamp` | string | ISO 8601 timestamp |
+| `trade_id` | integer | Unique trade ID |
+| `order_id` | integer | Associated order ID |
+| `crossed` | boolean | `true` = taker, `false` = maker |
+| `fee` | string | Base trading fee |
+| `fee_token` | string | Fee denomination (e.g., USDC) |
+| `closed_pnl` | string | Realized PnL if closing position |
+| `direction` | string | `Open Long`, `Close Short`, `Long > Short`, etc. |
+| `start_position` | string | Position size before trade |
+| `user_address` | string | User's wallet address |
+| `builder_address` | string | Builder address that routed this order. Only present when the order was placed through a builder. |
+| `builder_fee` | string | Builder fee charged on this fill, paid to the builder (quote currency, typically USDC). Only present when `builder_address` is set. |
+| `deployer_fee` | string | HIP-3 deployer fee share (quote currency). Negative for the maker side (rebate), positive for the taker side. HIP-3 only. |
+| `priority_gas` | number | Priority fee **burned in HYPE** (not USDC) for write priority on the Hyperliquid validator queue. Independent of `builder_fee` and `deployer_fee` — paid to the network, not to a builder or deployer. Only present when the order paid for priority. |
+| `cloid` | string | Client order ID |
+| `twap_id` | integer | TWAP execution ID |
+
+`builder_address`, `builder_fee`, `deployer_fee`, `priority_gas`, `cloid`, and `twap_id` are optional — only present when non-zero/non-empty. `deployer_fee` is specific to HIP-3. `priority_gas` appears on any order that paid for write priority (most common on HIP-3 IOC orders).
+
 ## Pagination
 
 When `meta.next_cursor` is present in the response, more data is available. Append `&cursor=VALUE` to fetch the next page:
