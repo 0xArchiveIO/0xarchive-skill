@@ -93,14 +93,14 @@ Every response follows this shape:
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). Orderbook requires Pro+ tier.
+Coin names are **case-sensitive** (e.g., `km:US500`). Free tier includes km:US500 for orderbook and orderbook history; Build+ unlocks all HIP-3 symbols.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
 | `GET /instruments` | -- | List HIP-3 instruments |
 | `GET /instruments/{coin}` | -- | Single instrument |
-| `GET /orderbook/{coin}` | `timestamp`, `depth` | Requires Pro+ tier |
-| `GET /orderbook/{coin}/history` | `start`, `end`, `limit`, `cursor`, `depth` | Requires Pro+ tier |
+| `GET /orderbook/{coin}` | `timestamp`, `depth` | Free: km:US500 only. Build+: all HIP-3 symbols. |
+| `GET /orderbook/{coin}/history` | `start`, `end`, `limit`, `cursor`, `depth` | Free: km:US500 only. Build+: all HIP-3 symbols. |
 | `GET /trades/{coin}` | `start`, `end`, `limit`, `cursor` | Trade history |
 | `GET /trades/{coin}/recent` | `limit` | Recent trades (no time range needed) |
 | `GET /candles/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles |
@@ -286,8 +286,8 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 | Tier | Price | Coins | Orderbook Depth | Lighter Granularity | Historical Depth | Rate Limit |
 |------|-------|-------|-----------------|---------------------|------------------|------------|
 | Free | $0 | BTC only (HIP-3: km:US500 only) | 20 levels | -- | 30 days | 15 RPS |
-| Build | $49/mo | All | 50 levels | checkpoint, 30s, 10s | 1 year | 50 RPS |
-| Pro | $199/mo | All | 100 levels | + 1s | Full history | 150 RPS |
+| Build | $49/mo | All | 200 levels | checkpoint, 30s, 10s | 1 year | 50 RPS |
+| Pro | $199/mo | All | Full depth | + 1s | Full history | 150 RPS |
 | Enterprise | Custom | All | Full depth | + tick | Full history | Custom |
 
 ## Error Handling
@@ -336,6 +336,15 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 NOW=$(( $(date +%s) * 1000 )); MONTH_AGO=$(( NOW - 2592000000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/funding/ETH?start=$MONTH_AGO&end=$NOW&interval=4h" | jq '.data'
+
+# HIP-3 km:US500 current orderbook (Free tier safe)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500" | jq '.data'
+
+# HIP-3 km:US500 orderbook history (Free tier safe)
+NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500/history?start=$HOUR_AGO&end=$NOW&limit=10" | jq '.data'
 
 # HIP-3 km:US500 candles (last 24h, 1h interval)
 NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
