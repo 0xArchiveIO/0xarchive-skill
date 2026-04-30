@@ -1,6 +1,6 @@
 {
   "name": "0xarchive",
-  "description": "Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3. Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.",
+  "description": "Agent-ready 0xArchive market data skill for coding-agent clients across Hyperliquid and Lighter.xyz, including Hyperliquid HIP-3.",
   "version": "1.7.0",
   "author": {
     "name": "0xArchive"
@@ -13,6 +13,10 @@
     "hyperliquid",
     "lighter-xyz",
     "orderbook",
-    "defi"
+    "defi",
+    "agents",
+    "claude-code",
+    "codex",
+    "agent-skills"
   ]
 }
