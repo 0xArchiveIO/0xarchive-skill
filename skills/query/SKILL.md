@@ -2,9 +2,10 @@
 name: 0xarchive
 version: 1.7.0
 description: >
-  Query historical crypto market data from 0xArchive across Hyperliquid, Lighter.xyz, and HIP-3.
+  Query historical crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
+  HIP-3 builder perps live under the Hyperliquid namespace at /v1/hyperliquid/hip3.
   Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
-  Use when the user asks about crypto market data, orderbooks, trades, funding rates, or historical prices on Hyperliquid, Lighter.xyz, or HIP-3.
+  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, funding rates, or historical prices on Hyperliquid, Lighter.xyz, or Hyperliquid HIP-3.
 allowed-tools: Bash
 argument-hint: "query, e.g. 'BTC funding rate' or 'ETH 4h candles last week'"
 metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OXARCHIVE_API_KEY"}}
@@ -12,7 +13,9 @@ metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OX
 
 # 0xArchive API Skill
 
-Query historical and real-time crypto market data from **0xArchive** using `curl`. Three exchanges are supported: **Hyperliquid** (perps DEX), **Lighter.xyz** (order-book DEX), and **HIP-3** (Hyperliquid builder perps). Data types: orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality metrics.
+Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive exposes two top-level venue APIs: **Hyperliquid** and **Lighter.xyz**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. Data types: orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality metrics.
+
+Orderbook depth limits apply to L2 snapshot endpoints only.
 
 ## Authentication
 
@@ -22,12 +25,12 @@ All endpoints require the `x-api-key` header. The key is read from `$OXARCHIVE_A
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" "https://api.0xarchive.io/v1/..."
 ```
 
-## Exchanges & Coin Naming
+## Venue Scopes & Coin Naming
 
-| Exchange | Path prefix | Coin format | Examples |
+| Scope | Path prefix | Coin format | Examples |
 |----------|-------------|-------------|---------|
 | Hyperliquid | `/v1/hyperliquid` | UPPERCASE | `BTC`, `ETH`, `SOL` |
-| HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `km:US500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
+| Hyperliquid HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `km:US500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
 | Lighter | `/v1/lighter` | UPPERCASE | `BTC`, `ETH` |
 
 Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is.
@@ -93,7 +96,7 @@ Every response follows this shape:
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). Free tier includes km:US500 for orderbook and orderbook history; Build+ unlocks all HIP-3 symbols.
+Coin names are **case-sensitive** (e.g., `km:US500`). Free tier includes km:US500 for orderbook and orderbook history; Build+ includes the broader HIP-3 symbol set.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -151,8 +154,8 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 | Endpoint | Params | Notes |
 |----------|--------|-------|
 | `GET /status` | -- | System health status |
-| `GET /coverage` | -- | Coverage summary, all exchanges |
-| `GET /coverage/{exchange}` | -- | Coverage for one exchange |
+| `GET /coverage` | -- | Coverage summary across venue APIs |
+| `GET /coverage/{exchange}` | -- | Coverage for one venue scope |
 | `GET /coverage/{exchange}/{symbol}` | `from`, `to` | Symbol-level coverage + gaps |
 | `GET /incidents` | `status`, `exchange`, `since`, `limit`, `offset` | List incidents |
 | `GET /incidents/{id}` | -- | Single incident |
