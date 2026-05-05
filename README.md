@@ -2,7 +2,7 @@
 
 Agent-ready 0xArchive market data prompts with no runtime dependency beyond `curl` and `jq`.
 
-0xArchive is granular market data infrastructure for Hyperliquid and Lighter.xyz. HIP-3 builder perps live under the Hyperliquid namespace. This repository ships the skill package for coding-agent clients that support local skills, including OpenClaw, Claude Code, Codex, and other SKILL.md-compatible agent environments.
+0xArchive is granular market data infrastructure for Hyperliquid and Lighter.xyz. HIP-3 builder perps and HIP-4 outcome markets (binary prediction markets) both live under the Hyperliquid namespace. This repository ships the skill package for coding-agent clients that support local skills, including OpenClaw, Claude Code, Codex, and other SKILL.md-compatible agent environments.
 
 Use this repo when your coding-agent surface supports a local skill package and you want the fastest route from `X-API-Key` to one live market-data answer. Use [AI Clients](https://www.0xarchive.io/docs/ai-clients) to choose between skills, MCP, CLI, markdown docs, `llms.txt`, OpenAPI, and other Claude Code or GPT Codex routes.
 
@@ -68,6 +68,7 @@ Claude Code and GPT Codex should both start from the same 0xArchive product trut
 | `/0xarchive:query ETH 4h candles last week` | Historical OHLCV candles |
 | `/0xarchive:query SOL liquidations last 24h` | Recent liquidation events |
 | `/0xarchive:query km:US500 trades last hour` | Hyperliquid HIP-3 trades |
+| `/0xarchive:query HIP-4 outcome 0 orderbook` | Hyperliquid HIP-4 outcome market orderbook (coin `0`, bare numeric form) |
 | `/0xarchive:query system health` | Data quality status across venue APIs |
 | `/0xarchive:query compare BTC funding Hyperliquid vs Lighter` | Venue funding comparison |
 | `/0xarchive:query sign up with wallet 0x...` | Web3 onboarding for a free API key |
@@ -82,7 +83,8 @@ Claude Code and GPT Codex should both start from the same 0xArchive product trut
 - **Candles** -- OHLCV aggregations (1m to 1w intervals)
 - **Funding Rates** -- Historical and current, with aggregation intervals
 - **Open Interest** -- Historical and current, with aggregation intervals
-- **Liquidations** -- By symbol, by user address, aggregated volume (Hyperliquid + HIP-3)
+- **Liquidations** -- By symbol, by user address, aggregated volume (Hyperliquid + HIP-3; HIP-4 has no liquidations). Available historically and over the realtime `liquidations` / `hip3_liquidations` WebSocket channels (each event is a fill row with `is_liquidation: true`).
+- **Outcome Markets** -- HIP-4 binary prediction markets with implied-probability pricing (0..1), `/outcomes` and `/outcomes/{id}` discovery endpoints, bare-numeric coin format `<10*outcome_id + side>` (legacy `#0` / `%230` also accepted), and the realtime `outcome_settled` WebSocket event when an outcome resolves
 - **Price History** -- Mark, oracle, and mid price over time
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call

@@ -1,11 +1,13 @@
 ---
 name: 0xarchive
-version: 1.7.0
+version: 1.9.0
 description: >
-  Query historical crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
+  Query historical and real-time crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
   HIP-3 builder perps live under the Hyperliquid namespace at /v1/hyperliquid/hip3.
-  Covers orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality.
-  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, funding rates, or historical prices on Hyperliquid, Lighter.xyz, or Hyperliquid HIP-3.
+  HIP-4 outcome markets (binary prediction markets like 'Will BTC be >= X by date Y?') live at /v1/hyperliquid/hip4.
+  Covers orderbooks, trades, candles, funding rates, open interest, liquidations (historical + realtime WS), outcome markets, and data quality.
+  Real-time WebSocket channels include trades, liquidations, hip3_liquidations, orderbooks, HIP-4 channels, L4 order-level data, and the outcome_settled event for HIP-4 resolutions.
+  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, funding rates, historical prices, real-time streams, or prediction-market outcomes on Hyperliquid, Lighter.xyz, Hyperliquid HIP-3, or Hyperliquid HIP-4.
 allowed-tools: Bash
 argument-hint: "query, e.g. 'BTC funding rate' or 'ETH 4h candles last week'"
 metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OXARCHIVE_API_KEY"}}
@@ -13,7 +15,7 @@ metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OX
 
 # 0xArchive API Skill
 
-Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive exposes two top-level venue APIs: **Hyperliquid** and **Lighter.xyz**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. Data types: orderbooks, trades, candles, funding rates, open interest, liquidations, and data quality metrics.
+Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive exposes two top-level venue APIs: **Hyperliquid** and **Lighter.xyz**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. Data types: orderbooks, trades, candles, funding rates, open interest, liquidations, outcome markets, and data quality metrics.
 
 Orderbook depth limits apply to L2 snapshot endpoints only.
 
@@ -31,9 +33,10 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" "https://api.0xarchive.io/v1/..."
 |----------|-------------|-------------|---------|
 | Hyperliquid | `/v1/hyperliquid` | UPPERCASE | `BTC`, `ETH`, `SOL` |
 | Hyperliquid HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `km:US500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
+| Hyperliquid HIP-4 | `/v1/hyperliquid/hip4` | Bare numeric `<10*outcome_id + side>` (legacy `#0` / `%230` also accepted) | `0`, `1`, `10`, `11` |
 | Lighter | `/v1/lighter` | UPPERCASE | `BTC`, `ETH` |
 
-Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is.
+Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is. HIP-4 coins encode outcome and side: `0` is outcome 0 / side 0 (YES), `1` is outcome 0 / side 1 (NO), `10` is outcome 1 / side 0, etc. The bare numeric form is canonical; the legacy `#0` and `%230` forms still work for backward compatibility.
 
 ## Timestamps
 
@@ -126,6 +129,35 @@ Coin names are **case-sensitive** (e.g., `km:US500`). Free tier includes km:US50
 | `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
 | `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
 
+### HIP-4 (`/v1/hyperliquid/hip4`)
+
+Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y?"). Coin names are bare numerics `<10*outcome_id + side>` (e.g. `0`, `1`, `10`); the legacy `#0` / `%230` forms are still accepted. HIP-4 has **no funding rates, no liquidations, and no candles** -- those endpoints do not exist on this venue. The `mark_price` field on HIP-4 instruments and prices is an **implied probability in the range 0..1**, not a USD price.
+
+| Endpoint | Params | Notes |
+|----------|--------|-------|
+| `GET /outcomes` | -- | List all outcome markets (HIP-4 only; not present on other venues) |
+| `GET /outcomes/{outcome_id}` | -- | Single outcome market detail (HIP-4 only) |
+| `GET /instruments` | -- | List HIP-4 instruments (one per side per outcome) |
+| `GET /instruments/{coin}` | -- | Single instrument. Coin is the bare numeric (e.g. `0`); legacy `%230` also accepted. |
+| `GET /orderbook/{coin}` | `timestamp`, `depth` | Latest or at timestamp |
+| `GET /orderbook/{coin}/history` | `start`, `end`, `limit`, `cursor`, `depth` | Historical snapshots |
+| `GET /trades/{coin}` | `start`, `end`, `limit`, `cursor` | Trade history |
+| `GET /trades/{coin}/recent` | `limit` | Recent trades |
+| `GET /openinterest/{coin}/current` | -- | Current open interest |
+| `GET /openinterest/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
+| `GET /freshness/{coin}` | -- | Data freshness per data type |
+| `GET /summary/{coin}` | -- | Combined market summary (implied probability + OI; no funding) |
+| `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Implied-probability history (mark/oracle/mid in 0..1) |
+| `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history (Build+) |
+| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
+| `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
+| `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
+| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Pro+) |
+| `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
+| `GET /orderbook/{coin}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 (Build+) |
+| `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
+| `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
+
 ### Lighter (`/v1/lighter`)
 
 Same data types as Hyperliquid except: no liquidations. Adds `granularity` on orderbook history and `/recent` trades.
@@ -164,16 +196,43 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 
 ### WebSocket Channels
 
-Additional real-time channels available via WebSocket (`wss://api.0xarchive.io/ws?apiKey=KEY`):
+Real-time + historical-replay channels available via WebSocket (`wss://api.0xarchive.io/ws?apiKey=KEY`). Build+ tier required for any WS access; Pro+ for L4 channels.
+
+**Trades + liquidations (realtime + replay):**
 
 | Channel | Notes |
 |---------|-------|
-| `l4_diffs` | L4 orderbook diffs with user attribution (Pro+, real-time only) |
-| `l4_orders` | Order lifecycle events with user attribution (Pro+, real-time only) |
-| `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots (Pro+, historical only) |
-| `hip3_liquidations` | HIP-3 liquidation events with long/short direction (Build+, historical only) |
-| `hip3_l4_diffs` | HIP-3 L4 orderbook diffs (Pro+, real-time only) |
-| `hip3_l4_orders` | HIP-3 order lifecycle events (Pro+, real-time only) |
+| `trades` | Hyperliquid trades. One row per side per fill. |
+| `hip3_trades` | HIP-3 trades. |
+| `hip4_trades` | HIP-4 trades. |
+| `lighter_trades` | Lighter trades. |
+| `liquidations` | Hyperliquid liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `trades`).** |
+| `hip3_liquidations` | HIP-3 liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `hip3_trades`).** |
+
+**Orderbook + open interest (realtime + replay):**
+
+| Channel | Notes |
+|---------|-------|
+| `orderbook`, `hip3_orderbook`, `hip4_orderbook`, `lighter_orderbook` | L2 orderbook updates (~1.2 sec resolution) |
+| `hip4_open_interest` | HIP-4 per-side OI snapshots |
+
+**Order-level (realtime only, Pro+):**
+
+| Channel | Notes |
+|---------|-------|
+| `l4_diffs` | Hyperliquid L4 orderbook diffs with user attribution |
+| `l4_orders` | Hyperliquid order lifecycle events |
+| `hip3_l4_diffs` | HIP-3 L4 orderbook diffs |
+| `hip3_l4_orders` | HIP-3 order lifecycle events |
+| `hip4_l4_diffs` | HIP-4 L4 orderbook diffs |
+| `hip4_l4_orders` | HIP-4 order lifecycle events |
+| `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots |
+
+**HIP-4 outcome events:**
+
+| Event type | Notes |
+|------------|-------|
+| `outcome_settled` | Fired once per HIP-4 outcome when it resolves (`is_settled` flips to true). Payload includes `outcome_id`, `winning_side`, and the settled timestamp. |
 
 ### Web3 Authentication (`/v1`)
 
@@ -264,11 +323,11 @@ Each trade/fill record includes:
 | `builder_address` | string | Builder address that routed this order. Only present when the order was placed through a builder. |
 | `builder_fee` | string | Builder fee charged on this fill, paid to the builder (quote currency, typically USDC). Only present when `builder_address` is set. |
 | `deployer_fee` | string | HIP-3 deployer fee share (quote currency). Negative for the maker side (rebate), positive for the taker side. HIP-3 only. |
-| `priority_gas` | number | Priority fee **burned in HYPE** (not USDC) for write priority on the Hyperliquid validator queue. Independent of `builder_fee` and `deployer_fee` — paid to the network, not to a builder or deployer. Only present when the order paid for priority. |
+| `priority_gas` | number | Priority fee **burned in HYPE** (not USDC) for write priority on the Hyperliquid validator queue. Independent of `builder_fee` and `deployer_fee` (paid to the network, not to a builder or deployer). Only present when the order paid for priority. |
 | `cloid` | string | Client order ID |
 | `twap_id` | integer | TWAP execution ID |
 
-`builder_address`, `builder_fee`, `deployer_fee`, `priority_gas`, `cloid`, and `twap_id` are optional — only present when non-zero/non-empty. `deployer_fee` is specific to HIP-3. `priority_gas` appears on any order that paid for write priority (most common on HIP-3 IOC orders).
+`builder_address`, `builder_fee`, `deployer_fee`, `priority_gas`, `cloid`, and `twap_id` are optional. They are only present when non-zero/non-empty. `deployer_fee` is specific to HIP-3. `priority_gas` appears on any order that paid for write priority (most common on HIP-3 IOC orders).
 
 ## Pagination
 
@@ -353,6 +412,31 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/hip3/candles/km:US500?start=$DAY_AGO&end=$NOW&interval=1h" | jq '.data'
+
+# HIP-4 list all outcome markets
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip4/outcomes" | jq '.data'
+
+# HIP-4 single outcome market detail (outcome_id = 0)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip4/outcomes/0" | jq '.data'
+
+# HIP-4 orderbook for outcome 0 / side 0 (coin = "0", canonical bare numeric form)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip4/orderbook/0?depth=10" | jq '.data'
+
+# HIP-4 implied-probability price history for outcome 0 / side 1 (last 24h)
+NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip4/prices/1?start=$DAY_AGO&end=$NOW&interval=1h" | jq '.data'
+
+# HIP-4 recent trades for outcome 0 / side 0
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip4/trades/0/recent?limit=20" | jq '.data'
+
+# HIP-4 list active outcomes (not yet settled)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/hip4/outcomes?is_settled=false" | jq '.data'
 
 # Lighter BTC orderbook history (30s granularity, last hour)
 NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
