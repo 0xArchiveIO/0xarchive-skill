@@ -1,7 +1,7 @@
 {
   "name": "0xarchive",
-  "description": "Agent-ready 0xArchive market data skill for coding-agent clients across Hyperliquid and Lighter.xyz, including Hyperliquid HIP-3.",
-  "version": "1.7.0",
+  "description": "Agent-ready 0xArchive market data skill for coding-agent clients across Hyperliquid and Lighter.xyz, including Hyperliquid HIP-3 builder perps and HIP-4 outcome markets. Covers historical REST endpoints plus realtime WebSocket channels (trades, liquidations, orderbooks, HIP-4 channels, L4 order-level data, outcome_settled).",
+  "version": "1.9.0",
   "author": {
     "name": "0xArchive"
   },
