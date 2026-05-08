@@ -1,21 +1,22 @@
 ---
 name: 0xarchive
-version: 1.9.0
+version: 1.10.0
 description: >
   Query historical and real-time crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
   HIP-3 builder perps live under the Hyperliquid namespace at /v1/hyperliquid/hip3.
   HIP-4 outcome markets (binary prediction markets like 'Will BTC be >= X by date Y?') live at /v1/hyperliquid/hip4.
-  Covers orderbooks, trades, candles, funding rates, open interest, liquidations (historical + realtime WS), outcome markets, and data quality.
-  Real-time WebSocket channels include trades, liquidations, hip3_liquidations, orderbooks, HIP-4 channels, L4 order-level data, and the outcome_settled event for HIP-4 resolutions.
-  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, funding rates, historical prices, real-time streams, or prediction-market outcomes on Hyperliquid, Lighter.xyz, Hyperliquid HIP-3, or Hyperliquid HIP-4.
+  Hyperliquid Spot lives at /v1/hyperliquid/spot with 294 spot pairs (HYPE-USDC, PURR-USDC, AAPL-USDC, ...).
+  Covers orderbooks, trades, candles, funding rates, open interest, liquidations (historical + realtime WS), outcome markets, spot, TWAP, and data quality.
+  Real-time WebSocket channels include trades, liquidations, hip3_liquidations, orderbooks, HIP-4 channels, spot channels, L4 order-level data, TWAP, and the outcome_settled event for HIP-4 resolutions.
+  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, funding rates, historical prices, real-time streams, prediction-market outcomes, or spot pairs on Hyperliquid, Lighter.xyz, Hyperliquid HIP-3, Hyperliquid HIP-4, or Hyperliquid Spot.
 allowed-tools: Bash
-argument-hint: "query, e.g. 'BTC funding rate' or 'ETH 4h candles last week'"
+argument-hint: "query, e.g. 'BTC funding rate' or 'HYPE-USDC spot trades last hour'"
 metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OXARCHIVE_API_KEY"}}
 ---
 
 # 0xArchive API Skill
 
-Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive exposes two top-level venue APIs: **Hyperliquid** and **Lighter.xyz**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. Data types: orderbooks, trades, candles, funding rates, open interest, liquidations, outcome markets, and data quality metrics.
+Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive exposes two top-level venue APIs: **Hyperliquid** and **Lighter.xyz**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. **Hyperliquid Spot** (294 pairs) lives at `/v1/hyperliquid/spot`. Data types: orderbooks, trades, candles, funding rates, open interest, liquidations, outcome markets, spot, TWAP, and data quality metrics.
 
 Orderbook depth limits apply to L2 snapshot endpoints only.
 
@@ -34,9 +35,10 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" "https://api.0xarchive.io/v1/..."
 | Hyperliquid | `/v1/hyperliquid` | UPPERCASE | `BTC`, `ETH`, `SOL` |
 | Hyperliquid HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `km:US500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
 | Hyperliquid HIP-4 | `/v1/hyperliquid/hip4` | Bare numeric `<10*outcome_id + side>` (legacy `#0` / `%230` also accepted) | `0`, `1`, `10`, `11` |
+| Hyperliquid Spot | `/v1/hyperliquid/spot` | Dashed canonical `BASE-QUOTE` | `HYPE-USDC`, `PURR-USDC`, `AAPL-USDC` |
 | Lighter | `/v1/lighter` | UPPERCASE | `BTC`, `ETH` |
 
-Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is. HIP-4 coins encode outcome and side: `0` is outcome 0 / side 0 (YES), `1` is outcome 0 / side 1 (NO), `10` is outcome 1 / side 0, etc. The bare numeric form is canonical; the legacy `#0` and `%230` forms still work for backward compatibility.
+Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is. HIP-4 coins encode outcome and side: `0` is outcome 0 / side 0 (YES), `1` is outcome 0 / side 1 (NO), `10` is outcome 1 / side 0, etc. The bare numeric form is canonical; the legacy `#0` and `%230` forms still work for backward compatibility. Spot symbols are dashed (`HYPE-USDC`, `PURR-USDC`, `AAPL-USDC`); the server resolves the dashed form to the wire format (`PURR/USDC`, `@107`) internally, so always use the dashed form.
 
 ## Timestamps
 
@@ -158,6 +160,29 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 | `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
 | `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
 
+### Hyperliquid Spot (`/v1/hyperliquid/spot`)
+
+294 spot pairs on Hyperliquid (HYPE-USDC, PURR-USDC, AAPL-USDC, ...). Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, no open interest, no liquidations, and no candles** -- those are perp-only constructs and the endpoints do not exist on this venue. Use spot for pair discovery, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
+
+Coverage:
+- **Trades**: backfilled from 2025-03-22 (~284M rows). Pre-March 2025 spot fills are not available (no public archive existed).
+- **Orderbook, L4, TWAP**: live-forward from 2026-05-05. No historical orderbook data prior to that date.
+
+| Endpoint | Params | Notes |
+|----------|--------|-------|
+| `GET /pairs` | -- | List all 294 spot pairs |
+| `GET /pairs/{symbol}` | -- | Single pair detail (e.g. `HYPE-USDC`) |
+| `GET /orderbook/{symbol}` | `timestamp`, `depth` | Current L2 orderbook (live from 2026-05-05) |
+| `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 history window (from 2026-05-05) |
+| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | Point-in-time L4 reconstruction (Pro+) |
+| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | Raw L4 diffs (Pro+) |
+| `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 checkpoints (Build+) |
+| `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor`, `user` | Spot trades. Pass `user` to filter to a wallet's fills. Backfilled to 2025-03-22. |
+| `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Spot order lifecycle (Pro+) |
+| `GET /twap/{symbol}` | `start`, `end`, `limit`, `cursor` | TWAP execution statuses for a symbol |
+| `GET /twap/user/{user}` | `start`, `end`, `limit`, `cursor` | TWAP execution statuses for a wallet |
+| `GET /freshness/{symbol}` | -- | Data freshness per data type |
+
 ### Lighter (`/v1/lighter`)
 
 Same data types as Hyperliquid except: no liquidations. Adds `granularity` on orderbook history and `/recent` trades.
@@ -205,6 +230,7 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | `trades` | Hyperliquid trades. One row per side per fill. |
 | `hip3_trades` | HIP-3 trades. |
 | `hip4_trades` | HIP-4 trades. |
+| `spot_trades` | Hyperliquid Spot trades (Build+). Symbol is dashed (`HYPE-USDC`). |
 | `lighter_trades` | Lighter trades. |
 | `liquidations` | Hyperliquid liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `trades`).** |
 | `hip3_liquidations` | HIP-3 liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `hip3_trades`).** |
@@ -214,6 +240,7 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | Channel | Notes |
 |---------|-------|
 | `orderbook`, `hip3_orderbook`, `hip4_orderbook`, `lighter_orderbook` | L2 orderbook updates (~1.2 sec resolution) |
+| `spot_orderbook` | Hyperliquid Spot L2 orderbook updates (Build+). Symbol is dashed (`HYPE-USDC`). |
 | `hip4_open_interest` | HIP-4 per-side OI snapshots |
 
 **Order-level (realtime only, Pro+):**
@@ -226,7 +253,15 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | `hip3_l4_orders` | HIP-3 order lifecycle events |
 | `hip4_l4_diffs` | HIP-4 L4 orderbook diffs |
 | `hip4_l4_orders` | HIP-4 order lifecycle events |
+| `spot_l4_diffs` | Hyperliquid Spot L4 orderbook diffs with user attribution |
+| `spot_l4_orders` | Hyperliquid Spot order lifecycle events |
 | `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots |
+
+**TWAP (realtime, Build+):**
+
+| Channel | Notes |
+|---------|-------|
+| `spot_twap` | Hyperliquid Spot TWAP execution status updates. Symbol is dashed (`HYPE-USDC`). |
 
 **HIP-4 outcome events:**
 
@@ -437,6 +472,42 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 # HIP-4 list active outcomes (not yet settled)
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/hip4/outcomes?is_settled=false" | jq '.data'
+
+# Hyperliquid Spot list all 294 pairs
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/pairs" | jq '.data | length'
+
+# Hyperliquid Spot single pair detail (HYPE-USDC, dashed canonical)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/pairs/HYPE-USDC" | jq '.data'
+
+# Hyperliquid Spot current orderbook (top 10 levels)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/orderbook/HYPE-USDC?depth=10" | jq '.data'
+
+# Hyperliquid Spot trades for the last hour (PURR-USDC)
+NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/trades/PURR-USDC?start=$HOUR_AGO&end=$NOW&limit=100" | jq '.data'
+
+# Hyperliquid Spot trades filtered to a specific wallet
+NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/trades/HYPE-USDC?start=$DAY_AGO&end=$NOW&user=0xYourWalletHere" | jq '.data'
+
+# Hyperliquid Spot TWAP statuses for a symbol (last hour)
+NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/twap/HYPE-USDC?start=$HOUR_AGO&end=$NOW" | jq '.data'
+
+# Hyperliquid Spot TWAP statuses for a wallet
+NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/twap/user/0xYourWalletHere?start=$DAY_AGO&end=$NOW" | jq '.data'
+
+# Hyperliquid Spot data freshness (per data type)
+curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/spot/freshness/HYPE-USDC" | jq '.data'
 
 # Lighter BTC orderbook history (30s granularity, last hour)
 NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
