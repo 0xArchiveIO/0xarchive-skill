@@ -89,26 +89,26 @@ Every response follows this shape:
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI, volume, liquidations) |
 | `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
-| `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution (Build+) |
-| `GET /orders/{symbol}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
-| `GET /orders/{symbol}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
-| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
-| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Pro+) |
-| `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
-| `GET /orderbook/{symbol}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 (Build+) |
-| `GET /orderbook/{symbol}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
-| `GET /orderbook/{symbol}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
+| `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution |
+| `GET /orders/{symbol}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation |
+| `GET /orders/{symbol}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history |
+| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction |
+| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs |
+| `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints |
+| `GET /orderbook/{symbol}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 |
+| `GET /orderbook/{symbol}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints |
+| `GET /orderbook/{symbol}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs |
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). Free tier includes km:US500 for orderbook and orderbook history; Build+ includes the broader HIP-3 symbol set.
+Coin names are **case-sensitive** (e.g., `km:US500`). All HIP-3 symbols are available on every tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
 | `GET /instruments` | -- | List HIP-3 instruments |
 | `GET /instruments/{coin}` | -- | Single instrument |
-| `GET /orderbook/{coin}` | `timestamp`, `depth` | Free: km:US500 only. Build+: all HIP-3 symbols. |
-| `GET /orderbook/{coin}/history` | `start`, `end`, `limit`, `cursor`, `depth` | Free: km:US500 only. Build+: all HIP-3 symbols. |
+| `GET /orderbook/{coin}` | `timestamp`, `depth` | All HIP-3 symbols, every tier. |
+| `GET /orderbook/{coin}/history` | `start`, `end`, `limit`, `cursor`, `depth` | All HIP-3 symbols, every tier. |
 | `GET /trades/{coin}` | `start`, `end`, `limit`, `cursor` | Trade history |
 | `GET /trades/{coin}/recent` | `limit` | Recent trades (no time range needed) |
 | `GET /candles/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles |
@@ -121,15 +121,15 @@ Coin names are **case-sensitive** (e.g., `km:US500`). Free tier includes km:US50
 | `GET /freshness/{coin}` | -- | Data freshness per data type |
 | `GET /summary/{coin}` | -- | Combined market summary (price, funding, OI) |
 | `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
-| `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution (Build+) |
-| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
-| `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
-| `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
-| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Pro+) |
-| `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
-| `GET /orderbook/{coin}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 (Build+) |
-| `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
-| `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
+| `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution |
+| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation |
+| `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history |
+| `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction |
+| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs |
+| `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints |
+| `GET /orderbook/{coin}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 |
+| `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints |
+| `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs |
 
 ### HIP-4 (`/v1/hyperliquid/hip4`)
 
@@ -150,15 +150,15 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 | `GET /freshness/{coin}` | -- | Data freshness per data type |
 | `GET /summary/{coin}` | -- | Combined market summary (implied probability + OI; no funding) |
 | `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Implied-probability history (mark/oracle/mid in 0..1) |
-| `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history (Build+) |
-| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation (Build+) |
-| `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history (Pro+) |
-| `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction (Pro+) |
-| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs (Pro+) |
-| `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints (Pro+) |
-| `GET /orderbook/{coin}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 (Build+) |
-| `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints (Build+) |
-| `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs (Pro+) |
+| `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history |
+| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation |
+| `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history |
+| `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction |
+| `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs |
+| `GET /orderbook/{coin}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 orderbook checkpoints |
+| `GET /orderbook/{coin}/l2` | `timestamp`, `depth` | L2 full-depth orderbook derived from L4 |
+| `GET /orderbook/{coin}/l2/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 full-depth checkpoints |
+| `GET /orderbook/{coin}/l2/diffs` | `start`, `end`, `limit`, `cursor` | L2 tick-level diffs |
 
 ### Hyperliquid Spot (`/v1/hyperliquid/spot`)
 
@@ -174,11 +174,11 @@ Coverage:
 | `GET /pairs/{symbol}` | -- | Single pair detail (e.g. `HYPE-USDC`) |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Current L2 orderbook (live from 2026-05-05) |
 | `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 history window (from 2026-05-05) |
-| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | Point-in-time L4 reconstruction (Pro+) |
-| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | Raw L4 diffs (Pro+) |
-| `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 checkpoints (Build+) |
+| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | Point-in-time L4 reconstruction |
+| `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | Raw L4 diffs |
+| `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 checkpoints |
 | `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor`, `user` | Spot trades. Pass `user` to filter to a wallet's fills. Backfilled to 2025-03-22. |
-| `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Spot order lifecycle (Pro+) |
+| `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Spot order lifecycle |
 | `GET /twap/{symbol}` | `start`, `end`, `limit`, `cursor` | TWAP execution statuses for a symbol |
 | `GET /twap/user/{user}` | `start`, `end`, `limit`, `cursor` | TWAP execution statuses for a wallet |
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
@@ -203,8 +203,8 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI) |
 | `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle price history |
-| `GET /l3orderbook/{symbol}` | `timestamp`, `depth`, `account` | L3 order-level orderbook (Pro+) |
-| `GET /l3orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `granularity`, `account` | Historical L3 snapshots (Pro+) |
+| `GET /l3orderbook/{symbol}` | `timestamp`, `depth`, `account` | L3 order-level orderbook |
+| `GET /l3orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `granularity`, `account` | Historical L3 snapshots |
 
 ### Data Quality (`/v1/data-quality`)
 
@@ -221,7 +221,7 @@ Same data types as Hyperliquid except: no liquidations. Adds `granularity` on or
 
 ### WebSocket Channels
 
-Real-time + historical-replay channels available via WebSocket (`wss://api.0xarchive.io/ws?apiKey=KEY`). Build+ tier required for any WS access; Pro+ for L4 channels.
+Real-time + historical-replay channels available via WebSocket (`wss://api.0xarchive.io/ws?apiKey=KEY`). WebSocket access (including all L4 channels) is available on every tier, starting with Free (10 subscriptions / 2 connections / 10x replay).
 
 **Trades + liquidations (realtime + replay):**
 
@@ -230,7 +230,7 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | `trades` | Hyperliquid trades. One row per side per fill. |
 | `hip3_trades` | HIP-3 trades. |
 | `hip4_trades` | HIP-4 trades. |
-| `spot_trades` | Hyperliquid Spot trades (Build+). Symbol is dashed (`HYPE-USDC`). |
+| `spot_trades` | Hyperliquid Spot trades. Symbol is dashed (`HYPE-USDC`). |
 | `lighter_trades` | Lighter trades. |
 | `liquidations` | Hyperliquid liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `trades`).** |
 | `hip3_liquidations` | HIP-3 liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `hip3_trades`).** |
@@ -240,10 +240,10 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | Channel | Notes |
 |---------|-------|
 | `orderbook`, `hip3_orderbook`, `hip4_orderbook`, `lighter_orderbook` | L2 orderbook updates (~1.2 sec resolution) |
-| `spot_orderbook` | Hyperliquid Spot L2 orderbook updates (Build+). Symbol is dashed (`HYPE-USDC`). |
+| `spot_orderbook` | Hyperliquid Spot L2 orderbook updates. Symbol is dashed (`HYPE-USDC`). |
 | `hip4_open_interest` | HIP-4 per-side OI snapshots |
 
-**Order-level (realtime only, Pro+):**
+**Order-level (realtime only):**
 
 | Channel | Notes |
 |---------|-------|
@@ -257,7 +257,7 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | `spot_l4_orders` | Hyperliquid Spot order lifecycle events |
 | `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots |
 
-**TWAP (realtime, Build+):**
+**TWAP (realtime):**
 
 | Channel | Notes |
 |---------|-------|
@@ -380,12 +380,15 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 
 ## Tier Limits
 
-| Tier | Price | Coins | Orderbook Depth | Lighter Granularity | Historical Depth | Rate Limit |
-|------|-------|-------|-----------------|---------------------|------------------|------------|
-| Free | $0 | BTC only (HIP-3: km:US500 only) | 20 levels | -- | 30 days | 15 RPS |
-| Build | $49/mo | All | 200 levels | checkpoint, 30s, 10s | 1 year | 50 RPS |
-| Pro | $199/mo | All | Full depth | + 1s | Full history | 150 RPS |
-| Enterprise | Custom | All | Full depth | + tick | Full history | Custom |
+| Tier | Price | Credits | Coins | Orderbook Depth | Lighter Granularity | Historical Depth | Rate Limit |
+|------|-------|---------|-------|-----------------|---------------------|------------------|------------|
+| Free | $0 | 50,000/mo | All symbols | Full depth | all granularities | Full history | 15 RPS |
+| Build | $49/mo | 80M/mo | All symbols | Full depth | all granularities | Full history | 50 RPS |
+| Pro | $199/mo | 400M/mo | All symbols | Full depth | all granularities | Full history | 150 RPS |
+| Scale | $799/mo | 2B/mo | All symbols | Full depth | all granularities | Full history | 500 RPS |
+| Enterprise | Custom | Unlimited | All symbols | Full depth | + tick | Full history | Custom |
+
+Scale ($799/mo, $639 annual) also includes 20,000 WebSocket subscriptions across 16 connections, 300x replay speed, and 200 API keys.
 
 ## Error Handling
 
@@ -393,7 +396,7 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 |-------------|---------|--------|
 | 400 | Bad request / validation error | Check params (missing start/end, invalid interval) |
 | 401 | Missing or invalid API key | Set `$OXARCHIVE_API_KEY` |
-| 403 | Tier restriction | Upgrade plan (e.g., non-BTC coin on Free tier) |
+| 403 | Plan limit reached | Hit a credit, RPS, concurrency, WebSocket-cap, or export limit; upgrade plan or wait for reset (all markets and schemas are available on every tier) |
 | 404 | Symbol not found | Check coin name spelling and exchange |
 | 429 | Rate limited | Back off and retry |
 
@@ -434,11 +437,11 @@ NOW=$(( $(date +%s) * 1000 )); MONTH_AGO=$(( NOW - 2592000000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/funding/ETH?start=$MONTH_AGO&end=$NOW&interval=4h" | jq '.data'
 
-# HIP-3 km:US500 current orderbook (Free tier safe)
+# HIP-3 km:US500 current orderbook
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500" | jq '.data'
 
-# HIP-3 km:US500 orderbook history (Free tier safe)
+# HIP-3 km:US500 orderbook history
 NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500/history?start=$HOUR_AGO&end=$NOW&limit=10" | jq '.data'
