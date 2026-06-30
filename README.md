@@ -138,6 +138,16 @@ Then use `/0xarchive` in that skill-capable client, e.g.:
 
 For file-based historical pulls, use the [Data Catalog](https://www.0xarchive.io/data). It lets you search markets, choose datasets and dates, see a live quote, and export zstd-compressed Parquet.
 
+## Links
+
+- [API Docs](https://docs.0xarchive.io)
+- [Python SDK](https://github.com/0xArchiveIO/sdk-python)
+- [TypeScript SDK](https://github.com/0xArchiveIO/sdk-typescript)
+- [Rust SDK](https://github.com/0xArchiveIO/sdk-rust)
+- [CLI](https://github.com/0xArchiveIO/0xarchive-cli)
+- [MCP Server](https://github.com/0xArchiveIO/0xarchive-mcp)
+- [Examples](https://github.com/0xArchiveIO/examples)
+
 ## Requirements
 
 - An 0xArchive API key from [signup](https://www.0xarchive.io/signup)
