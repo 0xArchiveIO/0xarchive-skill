@@ -145,7 +145,7 @@ For file-based historical pulls, use the [Data Catalog](https://www.0xarchive.io
 - [TypeScript SDK](https://github.com/0xArchiveIO/sdk-typescript)
 - [Rust SDK](https://github.com/0xArchiveIO/sdk-rust)
 - [CLI](https://github.com/0xArchiveIO/0xarchive-cli)
-- [MCP Server](https://github.com/0xArchiveIO/0xarchive-mcp)
+- [MCP Server](https://mcp.0xarchive.io)
 - [Examples](https://github.com/0xArchiveIO/examples)
 
 ## Requirements
