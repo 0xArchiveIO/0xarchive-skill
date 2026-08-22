@@ -101,7 +101,7 @@ Every response follows this shape:
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated inventory has 266 instruments. Served trades, candles, and liquidation events begin February 1, 2026; native L2, funding, and OI begin February 16, 2026; L4 reconstruction begins March 10, 2026. All HIP-3 symbols are available on every tier.
+Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated August 22, 2026 inventory has 267 instruments across 10 builder prefixes: `abcd`, `cash`, `flx`, `hyna`, `io`, `km`, `mkts`, `para`, `vntl`, and `xyz`. Served trades, candles, and liquidation events begin February 1, 2026; native L2, funding, and OI begin February 16, 2026; L4 reconstruction begins March 10, 2026. All HIP-3 symbols are available on every tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
