@@ -101,7 +101,7 @@ Every response follows this shape:
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated inventory has 266 instruments. Served trades, candles, and liquidation events begin February 1, 2026; native L2, funding, and OI begin February 16, 2026; L4 reconstruction begins March 10, 2026. All HIP-3 symbols are available on every tier.
+Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated August 22, 2026 inventory has 267 instruments across 10 builder prefixes: `abcd`, `cash`, `flx`, `hyna`, `io`, `km`, `mkts`, `para`, `vntl`, and `xyz`. Served trades, candles, and liquidation events begin February 1, 2026; native L2, funding, and OI begin February 16, 2026; L4 diffs and order-lifecycle rows have a March 10, 2026 family floor; reconstructable checkpoints and point-in-time state can begin later by symbol. All HIP-3 symbols are available on every tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -168,7 +168,8 @@ The authenticated inventory has 326 Hyperliquid Spot rows (HYPE-USDC, PURR-USDC,
 Coverage:
 - **Candles**: served from 2025-03-22T10:50:22Z at `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, and `1w`; maximum `limit` is 1000 and `next_cursor` is opaque.
 - **Trades**: backfilled from 2025-03-22 (~284M rows). Pre-March 2025 spot fills are not available (no public archive existed).
-- **Orderbook, L4, TWAP**: live-forward from 2026-05-05. No historical orderbook data prior to that date.
+- **Native L2 and TWAP**: live-forward from 2026-05-05. No native L2 history is claimed before that date.
+- **L4**: raw diffs are served from 2026-03-10; reconstructable checkpoints and point-in-time state are observed from 2026-03-11. Exact starts vary by pair.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -177,7 +178,7 @@ Coverage:
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from 2025-03-22T10:50:22Z; intervals `1m` through `1w`; max `limit` 1000; cursor is opaque |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Current L2 orderbook (live from 2026-05-05) |
 | `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 history window (from 2026-05-05) |
-| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | Point-in-time L4 reconstruction |
+| `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | Point-in-time L4 reconstruction; observed from 2026-03-11 and exact starts vary by pair |
 | `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | Raw L4 diffs |
 | `GET /orderbook/{symbol}/l4/history` | `start`, `end`, `limit`, `cursor` | L4 checkpoints |
 | `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor`, `user` | Spot trades. Pass `user` to filter to a wallet's fills. Backfilled to 2025-03-22. |
