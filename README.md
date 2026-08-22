@@ -85,20 +85,21 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 | `/0xarchive:query SOL liquidations last 24h` | Recent liquidation events |
 | `/0xarchive:query km:US500 trades last hour` | Hyperliquid HIP-3 trades |
 | `/0xarchive:query system health` | Data quality status across venue APIs |
-| `/0xarchive:query compare BTC funding Hyperliquid vs Lighter` | Venue funding comparison |
+| `/0xarchive:query BTC open interest on Lighter` | Lighter open-interest history |
+| `/0xarchive:query HIP-4 coin 0 candles last day` | HIP-4 implied-probability OHLCV |
 | `/0xarchive:query sign up with wallet 0x...` | Web3 onboarding for a free API key |
 
 ## Data Available
 
-- **Orderbooks** -- L2 snapshots with configurable depth and granularity. Depth tiers apply to L2 snapshot routes.
-- **L4 Orderbooks** -- User-attributed orderbook reconstruction, diffs, and checkpoints (Hyperliquid + HIP-3)
-- **L3 Orderbooks** -- Order-level orderbook snapshots with account filtering (Lighter)
-- **Orders** -- Order history with user attribution, order flow aggregation, TP/SL history (Hyperliquid + HIP-3)
-- **Trades** -- Individual fills with maker/taker details
-- **Candles** -- OHLCV aggregations (1m to 1w intervals)
-- **Funding Rates** -- Historical and current, with aggregation intervals
-- **Open Interest** -- Historical and current, with aggregation intervals
-- **Liquidations** -- By symbol, by user address, aggregated volume (Hyperliquid + HIP-3)
+- **Orderbooks** -- Hyperliquid-family native L2 is capped at 20 levels per side. Lighter native L2 includes all served levels.
+- **L4 Orderbooks** -- All-level user-attributed reconstruction, diffs, and checkpoints across Hyperliquid core, Spot, HIP-3, and HIP-4.
+- **L3 Orderbooks** -- Lighter order-level snapshots with owner filtering, capped at 250 orders per side from March 5, 2026.
+- **Orders** -- Order history with user attribution, order flow aggregation, and TP/SL history on Hyperliquid families, separate from the resting L4 book.
+- **Trades** -- Fill-level rows. Lighter has an observed global floor of August 27, 2025, exact starts vary by market, and maker/taker context is included where served. HIP-3 served trades begin February 1, 2026.
+- **Candles** -- OHLCV aggregations from 1m to 1w where served. Lighter candles begin August 1, 2025; HIP-4 implied-probability candles begin May 2, 2026; Hyperliquid Spot candles begin exactly 2025-03-22T10:50:22Z and accept a maximum limit of 1000 with opaque cursors.
+- **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding.
+- **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025; HIP-4 begins May 2, 2026 and updates at roughly 10 seconds.
+- **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; Lighter live liquidation-event and aggregated-volume routes with incomplete historical metadata.
 - **Price History** -- Mark, oracle, and mid price over time
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
