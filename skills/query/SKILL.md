@@ -101,7 +101,7 @@ Every response follows this shape:
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). All HIP-3 symbols are available on every tier.
+Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated inventory has 266 instruments. Served trades, candles, and liquidation events begin February 1, 2026; native L2, funding, and OI begin February 16, 2026; L4 reconstruction begins March 10, 2026. All HIP-3 symbols are available on every tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -186,7 +186,7 @@ Coverage:
 
 ### Lighter (`/v1/lighter`)
 
-Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window. Funding and OI update roughly every 10 seconds. L3 begins March 5, 2026 and is capped at 250 resting orders per side.
+Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -196,11 +196,11 @@ Lighter has native L2, L3, trades, candles, funding, open interest, liquidation 
 | `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth`, `granularity` | Default granularity: `checkpoint` |
 | `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor` | Per-fill history with maker/taker context; starts August 27, 2025 |
 | `GET /trades/{symbol}/recent` | `limit` | Recent trades (no time range needed) |
-| `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles |
+| `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from August 1, 2025 |
 | `GET /funding/{symbol}/current` | -- | Current funding rate |
-| `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history; raw updates roughly every 10 seconds |
+| `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history from August 25, 2025; raw updates roughly every 10 seconds |
 | `GET /openinterest/{symbol}/current` | -- | Current OI |
-| `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history; raw updates roughly every 10 seconds |
+| `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history from August 25, 2025; raw updates roughly every 10 seconds |
 | `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events; live-only from capture start, with no earlier public backfill |
 | `GET /liquidations/{symbol}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Time-bucketed liquidation volume |
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |

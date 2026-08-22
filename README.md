@@ -95,10 +95,10 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 - **L4 Orderbooks** -- All-level user-attributed reconstruction, diffs, and checkpoints across Hyperliquid core, Spot, HIP-3, and HIP-4.
 - **L3 Orderbooks** -- Lighter order-level snapshots with owner filtering, capped at 250 orders per side from March 5, 2026.
 - **Orders** -- Order history with user attribution, order flow aggregation, and TP/SL history on Hyperliquid families, separate from the resting L4 book.
-- **Trades** -- Fill-level rows. Lighter has an observed global floor of August 27, 2025, exact starts vary by market, and maker/taker context is included where served.
-- **Candles** -- OHLCV aggregations from 1m to 1w where served, including HIP-4 implied-probability candles; Spot has no candles.
-- **Funding Rates** -- Hyperliquid core at roughly one minute, HIP-3 and Lighter at roughly 10 seconds. HIP-4 and Spot have no funding.
-- **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-4 OI updates at roughly 10 seconds.
+- **Trades** -- Fill-level rows. Lighter has an observed global floor of August 27, 2025, exact starts vary by market, and maker/taker context is included where served. HIP-3 served trades begin February 1, 2026.
+- **Candles** -- OHLCV aggregations from 1m to 1w where served. Lighter candles begin August 1, 2025; HIP-4 implied-probability candles begin May 2, 2026; Spot has no candles.
+- **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding.
+- **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025; HIP-4 begins May 2, 2026 and updates at roughly 10 seconds.
 - **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; Lighter live liquidation-event and aggregated-volume routes with incomplete historical metadata.
 - **Price History** -- Mark, oracle, and mid price over time
 - **Freshness** -- Per-data-type lag and last-updated timestamps
