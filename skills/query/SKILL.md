@@ -5,10 +5,10 @@ description: >
   Query historical and real-time crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
   HIP-3 builder perps live under the Hyperliquid namespace at /v1/hyperliquid/hip3.
   HIP-4 outcome markets (binary prediction markets like 'Will BTC be >= X by date Y?') live at /v1/hyperliquid/hip4.
-  Hyperliquid Spot lives at /v1/hyperliquid/spot with 326 authenticated inventory rows (HYPE-USDC, PURR-USDC, AAPL-USDC, ...).
+  Hyperliquid Spot lives at /v1/hyperliquid/spot with 326 authenticated inventory rows (HYPE-USDC, PURR-USDC, AAPL-USDC, ...); Spot candles are served from 2025-03-22T10:50:22Z.
   Covers route-specific orderbooks, trades, candles, funding rates, open interest, liquidations, outcome markets, spot, TWAP, and data quality.
   Real-time WebSocket support is channel-specific. HIP-4 trades, L4 events, and settlement events are live; HIP-4 L2 orderbook and outcome-side OI remain available through REST and stored replay while their live bridges are paused.
-  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, funding rates, historical prices, real-time streams, prediction-market outcomes, or spot pairs on Hyperliquid, Lighter.xyz, Hyperliquid HIP-3, Hyperliquid HIP-4, or Hyperliquid Spot.
+  Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, candles, funding rates, historical prices, real-time streams, prediction-market outcomes, or spot pairs on Hyperliquid, Lighter.xyz, Hyperliquid HIP-3, Hyperliquid HIP-4, or Hyperliquid Spot.
 allowed-tools: Bash
 argument-hint: "query, e.g. 'BTC funding rate' or 'HYPE-USDC spot trades last hour'"
 metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OXARCHIVE_API_KEY"}}
@@ -62,7 +62,7 @@ Every response follows this shape:
   "meta": {
     "count": 100,
     "request_id": "uuid",
-    "next_cursor": "1706000000000"   // present when more pages exist
+    "next_cursor": "opaque-cursor"   // present when more pages exist
   }
 }
 ```
@@ -163,9 +163,10 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 
 ### Hyperliquid Spot (`/v1/hyperliquid/spot`)
 
-The authenticated inventory has 326 Hyperliquid Spot rows (HYPE-USDC, PURR-USDC, AAPL-USDC, ...). Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, no open interest, no liquidations, and no candles** -- those are perp-only constructs and the endpoints do not exist on this venue. Use spot for pair discovery, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
+The authenticated inventory has 326 Hyperliquid Spot rows (HYPE-USDC, PURR-USDC, AAPL-USDC, ...). Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, open interest, or liquidations**. Spot candles are served from 2025-03-22T10:50:22Z through a dedicated OHLCV route. Use spot for pair discovery, candles, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
 
 Coverage:
+- **Candles**: served from 2025-03-22T10:50:22Z at `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, and `1w`; maximum `limit` is 1000 and `next_cursor` is opaque.
 - **Trades**: backfilled from 2025-03-22 (~284M rows). Pre-March 2025 spot fills are not available (no public archive existed).
 - **Orderbook, L4, TWAP**: live-forward from 2026-05-05. No historical orderbook data prior to that date.
 
@@ -173,6 +174,7 @@ Coverage:
 |----------|--------|-------|
 | `GET /pairs` | -- | List current Spot pairs; authenticated inventory has 326 rows |
 | `GET /pairs/{symbol}` | -- | Single pair detail (e.g. `HYPE-USDC`) |
+| `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from 2025-03-22T10:50:22Z; intervals `1m` through `1w`; max `limit` 1000; cursor is opaque |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Current L2 orderbook (live from 2026-05-05) |
 | `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth` | L2 history window (from 2026-05-05) |
 | `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | Point-in-time L4 reconstruction |
@@ -321,7 +323,7 @@ Get API keys programmatically using an Ethereum wallet (SIWE). No API key requir
 |-------|------|-------------|
 | `start` | int | Start timestamp (Unix ms). Defaults to 24h ago. |
 | `end` | int | End timestamp (Unix ms). Defaults to now. |
-| `limit` | int | Max records. Default 100, max 1000 (max 10000 for candles). |
+| `limit` | int | Max records. Default 100; candle limits are route-specific: max 1000 for Spot and HIP-4, max 10000 for core Hyperliquid, HIP-3, and Lighter. |
 | `cursor` | string | Pagination cursor from `meta.next_cursor`. |
 | `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. For OI/funding: `5m`, `15m`, `30m`, `1h`, `4h`, `1d`. Omit for raw data: core funding is roughly 1 minute; HIP-3 funding/OI, HIP-4 OI, and Lighter funding/OI are roughly 10 seconds. |
 | `depth` | int | Route-specific orderbook depth. Hyperliquid-family native L2 caps at 20 levels per side; Lighter L3 caps at 250 orders per side. |
