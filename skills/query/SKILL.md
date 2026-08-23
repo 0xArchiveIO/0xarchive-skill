@@ -42,7 +42,7 @@ Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names 
 
 ## Timestamps
 
-All timestamps are **Unix milliseconds**. Use these shell helpers:
+Time-window query parameters, including Lighter L3 `start` and `end`, are **Unix milliseconds**. Response records may expose RFC 3339 timestamp strings. Use these shell helpers for request windows:
 
 ```bash
 NOW=$(( $(date +%s) * 1000 ))
@@ -62,7 +62,7 @@ Every response follows this shape:
   "meta": {
     "count": 100,
     "request_id": "uuid",
-    "next_cursor": "opaque-cursor"   // present when more pages exist
+    "next_cursor": "1706000000000"   // present when more pages exist; pass back unchanged
   }
 }
 ```
@@ -325,7 +325,7 @@ Get API keys programmatically using an Ethereum wallet (SIWE). No API key requir
 | `start` | int | Start timestamp (Unix ms). Defaults to 24h ago. |
 | `end` | int | End timestamp (Unix ms). Defaults to now. |
 | `limit` | int | Max records. Default 100; candle limits are route-specific: max 1000 for Spot and HIP-4, max 10000 for core Hyperliquid, HIP-3, and Lighter. |
-| `cursor` | string | Pagination cursor from `meta.next_cursor`. |
+| `cursor` | string | Pagination cursor from `meta.next_cursor`. Pass it back unchanged; do not parse or construct it. |
 | `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. For OI/funding: `5m`, `15m`, `30m`, `1h`, `4h`, `1d`. Omit for raw data: core funding is roughly 1 minute; HIP-3 funding/OI, HIP-4 OI, and Lighter funding/OI are roughly 10 seconds. |
 | `depth` | int | Route-specific orderbook depth. Hyperliquid-family native L2 caps at 20 levels per side; Lighter L3 caps at 250 orders per side. |
 | `granularity` | string | Lighter orderbook resolution: `checkpoint` (default), `30s`, `10s`, `1s`, `tick`. |
@@ -380,9 +380,14 @@ When `meta.next_cursor` is present in the response, more data is available. Appe
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/trades/BTC?start=$START&end=$END&limit=1000"
 
-# Next page (use next_cursor from previous response)
-curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
-  "https://api.0xarchive.io/v1/hyperliquid/trades/BTC?start=$START&end=$END&limit=1000&cursor=1706000000000_12345"
+# Next page (copy next_cursor from the previous response)
+NEXT_CURSOR="..."
+curl -sG -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/trades/BTC" \
+  --data-urlencode "start=$START" \
+  --data-urlencode "end=$END" \
+  --data-urlencode "limit=1000" \
+  --data-urlencode "cursor=$NEXT_CURSOR"
 ```
 
 ## Tier Limits
