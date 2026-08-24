@@ -42,7 +42,7 @@ Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names 
 
 ## Timestamps
 
-Time-window query parameters, including Lighter L3 `start` and `end`, are **Unix milliseconds**. Response records may expose RFC 3339 timestamp strings. Use these shell helpers for request windows:
+Request time parameters (`start`, `end`, `timestamp`, and `at`) are **Unix milliseconds**. Response records may expose RFC 3339 timestamp strings. Use these shell helpers for request windows:
 
 ```bash
 NOW=$(( $(date +%s) * 1000 ))
