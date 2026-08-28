@@ -105,6 +105,21 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
 - **Data Quality** -- Coverage, latency, SLA, incidents
 
+## Lighter Data Access
+
+Current Lighter data is queried through the `/v1/lighter` REST routes. Historical data is available through REST history routes, Data Catalog/Parquet exports, and WebSocket replay. The six Lighter WebSocket channels are replay-only, not live subscriptions:
+
+| Replay channel | Current REST route |
+|---|---|
+| `lighter_orderbook` | `/v1/lighter/orderbook/{symbol}` |
+| `lighter_trades` | `/v1/lighter/trades/{symbol}/recent` |
+| `lighter_candles` | `/v1/lighter/candles/{symbol}` |
+| `lighter_open_interest` | `/v1/lighter/openinterest/{symbol}/current` |
+| `lighter_funding` | `/v1/lighter/funding/{symbol}/current` |
+| `lighter_l3_orderbook` | `/v1/lighter/l3orderbook/{symbol}` |
+
+Use the corresponding REST history route, an export, or WebSocket replay for historical data. Hyperliquid live channels remain available where documented in `skills/query/SKILL.md`.
+
 ## Install
 
 For Claude Code or ChatGPT Codex with skills enabled, copy the skill into the local skill directory your client reads:

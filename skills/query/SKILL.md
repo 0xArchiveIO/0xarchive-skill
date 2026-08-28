@@ -7,7 +7,7 @@ description: >
   HIP-4 outcome markets (binary prediction markets like 'Will BTC be >= X by date Y?') live at /v1/hyperliquid/hip4.
   Hyperliquid Spot lives at /v1/hyperliquid/spot; use /v1/hyperliquid/spot/pairs for current inventory; Spot candles are served from 2025-03-22T10:50:22Z.
   Covers route-specific orderbooks, trades, candles, funding rates, open interest, liquidations, outcome markets, spot, TWAP, and data quality.
-  Real-time WebSocket support is channel-specific. HIP-4 trades, L4 events, and settlement events are live; HIP-4 L2 orderbook and outcome-side OI remain available through REST and stored replay while their live bridges are paused.
+  Real-time WebSocket support is channel-specific. HIP-4 trades, L4 events, and settlement events remain live; HIP-4 L2 orderbook and outcome-side OI remain available through REST and stored replay. Lighter channels are historical replay-only; use REST for current data and REST, exports, or replay for history.
   Use in Claude Code, Codex with skills enabled, and SKILL.md-compatible agents when the user asks about crypto market data, orderbooks, trades, candles, funding rates, historical prices, real-time streams, prediction-market outcomes, or spot pairs on Hyperliquid, Lighter.xyz, Hyperliquid HIP-3, Hyperliquid HIP-4, or Hyperliquid Spot.
 allowed-tools: Bash
 argument-hint: "query, e.g. 'BTC funding rate' or 'HYPE-USDC spot trades last hour'"
@@ -42,7 +42,7 @@ Hyperliquid and Lighter auto-uppercase the symbol server-side. HIP-3 coin names 
 
 ## Timestamps
 
-All timestamps are **Unix milliseconds**. Use these shell helpers:
+Request time parameters (`start`, `end`, `timestamp`, and `at`) are **Unix milliseconds**. Response records may expose RFC 3339 timestamp strings. Use these shell helpers for request windows:
 
 ```bash
 NOW=$(( $(date +%s) * 1000 ))
@@ -62,7 +62,7 @@ Every response follows this shape:
   "meta": {
     "count": 100,
     "request_id": "uuid",
-    "next_cursor": "opaque-cursor"   // present when more pages exist
+    "next_cursor": "opaque-cursor"   // present when more pages exist; pass back unchanged (for example, `1706000000000`)
   }
 }
 ```
@@ -202,7 +202,7 @@ Coverage:
 
 ### Lighter (`/v1/lighter`)
 
-Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window.
+Current Lighter data is served by the `/v1/lighter` REST routes. Historical Lighter data is available from the REST history routes and Data Catalog/Parquet exports; the six replay-only WebSocket channels are documented in the WebSocket section below. Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window.
 
 **Funding caveat:** Current Lighter funding values must not be compared across venues or annualized pending normalization repair.
 
@@ -244,9 +244,11 @@ Operational coverage, inventory counts, freshness, and live/replay bridge state 
 
 ### WebSocket Channels
 
-Real-time + historical-replay channels are available via WebSocket at `wss://api.0xarchive.io/ws`. For server-side clients, authenticate the opening handshake with `Authorization: Bearer $OXARCHIVE_API_KEY`; do not put real API keys in URLs, logs, or prompts. Browser clients should connect through a backend that keeps the key server-side. WebSocket access (including all L4 channels) is available on every tier, starting with Free (10 subscriptions / 2 connections / 10x replay).
+WebSocket capabilities are channel-specific at `wss://api.0xarchive.io/ws`. For server-side clients, authenticate the opening handshake with `Authorization: Bearer $OXARCHIVE_API_KEY`; do not put real API keys in URLs, logs, or prompts. Browser clients should connect through a backend that keeps the key server-side. WebSocket access (including all L4 channels) is available on every tier, starting with Free (10 subscriptions / 2 connections / 10x replay).
 
-**Trades + liquidations (realtime + replay):**
+Hyperliquid-family live channels remain available where listed below. Lighter current data is served through REST. Lighter historical data is available through REST history routes, Data Catalog/Parquet exports, or WebSocket replay for the six replay-only channels in the Lighter table.
+
+**Hyperliquid-family trades + liquidations (live + replay):**
 
 | Channel | Notes |
 |---------|-------|
@@ -254,18 +256,30 @@ Real-time + historical-replay channels are available via WebSocket at `wss://api
 | `hip3_trades` | HIP-3 trades. |
 | `hip4_trades` | HIP-4 trades. |
 | `spot_trades` | Hyperliquid Spot trades. Symbol is dashed (`HYPE-USDC`). |
-| `lighter_trades` | Lighter trades. |
 | `liquidations` | Hyperliquid liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `trades`).** |
 | `hip3_liquidations` | HIP-3 liquidations. **Each event is a fill row with `is_liquidation: true` (same shape as `hip3_trades`).** |
 
-**Orderbook + open interest:**
+**Hyperliquid-family orderbook + open interest:**
 
 | Channel | Notes |
 |---------|-------|
-| `orderbook`, `hip3_orderbook`, `lighter_orderbook` | Live and replayable L2 orderbook updates |
+| `orderbook`, `hip3_orderbook` | Hyperliquid-family L2 orderbook updates; live and replayable. |
 | `spot_orderbook` | Hyperliquid Spot L2 orderbook updates. Symbol is dashed (`HYPE-USDC`). |
-| `hip4_orderbook` | Stored replay only while the live HIP-4 L2 bridge is paused; use REST for current snapshots |
-| `hip4_open_interest` | Stored replay only while the live HIP-4 OI bridge is paused; use REST for current outcome-side OI |
+| `hip4_orderbook` | Stored replay only; use REST for current snapshots. |
+| `hip4_open_interest` | Stored replay only; use REST for current outcome-side OI. |
+
+**Lighter replay-only channels:**
+
+Lighter has no live WebSocket delivery for the entries below. These names remain accepted for historical replay; a live request is rejected by the standard unsupported-real-time response. Use the corresponding REST route for current data and REST history, Data Catalog/Parquet exports, or WebSocket replay for historical data.
+
+| Channel | Current data (REST) | Historical data |
+|---------|---------------------|------------------|
+| `lighter_orderbook` | `/v1/lighter/orderbook/{symbol}` | `/v1/lighter/orderbook/{symbol}/history`, exports, or replay |
+| `lighter_trades` | `/v1/lighter/trades/{symbol}/recent` | `/v1/lighter/trades/{symbol}`, exports, or replay |
+| `lighter_candles` | `/v1/lighter/candles/{symbol}` | `/v1/lighter/candles/{symbol}` with a time window, exports, or replay |
+| `lighter_open_interest` | `/v1/lighter/openinterest/{symbol}/current` | `/v1/lighter/openinterest/{symbol}`, exports, or replay |
+| `lighter_funding` | `/v1/lighter/funding/{symbol}/current` | `/v1/lighter/funding/{symbol}`, exports, or replay |
+| `lighter_l3_orderbook` | `/v1/lighter/l3orderbook/{symbol}` | `/v1/lighter/l3orderbook/{symbol}/history`, exports, or replay |
 
 **Order-level (realtime only):**
 
@@ -279,7 +293,6 @@ Real-time + historical-replay channels are available via WebSocket at `wss://api
 | `hip4_l4_orders` | HIP-4 order lifecycle events |
 | `spot_l4_diffs` | Hyperliquid Spot L4 orderbook diffs with user attribution |
 | `spot_l4_orders` | Hyperliquid Spot order lifecycle events |
-| `lighter_l3_orderbook` | Lighter L3 order-level orderbook snapshots |
 
 **TWAP (realtime):**
 
@@ -345,7 +358,7 @@ Use SIWE for existing wallet accounts and x402 for paid wallet access. Standard 
 | `start` | int | Start timestamp (Unix ms). Defaults to 24h ago. |
 | `end` | int | End timestamp (Unix ms). Defaults to now. |
 | `limit` | int | Max records. Default 100; candle limits are route-specific: max 1000 for Spot and HIP-4, max 10000 for core Hyperliquid, HIP-3, and Lighter. |
-| `cursor` | string | Pagination cursor from `meta.next_cursor`. |
+| `cursor` | string | Pagination cursor from `meta.next_cursor`. Pass it back unchanged; do not parse or construct it. |
 | `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. For OI/funding: `5m`, `15m`, `30m`, `1h`, `4h`, `1d`. Omit for raw data: core funding is roughly 1 minute; HIP-3 funding/OI, HIP-4 OI, and Lighter funding/OI are roughly 10 seconds. |
 | `depth` | int | Route-specific orderbook depth. Hyperliquid-family native L2 caps at 20 levels per side; Lighter L3 caps at 250 orders per side. |
 | `granularity` | string | Lighter orderbook resolution: `checkpoint` (default), `30s`, `10s`, `1s`, `tick`. |
@@ -393,16 +406,21 @@ Each trade/fill record includes:
 
 ## Pagination
 
-When `meta.next_cursor` is present in the response, more data is available. Append `&cursor=VALUE` to fetch the next page:
+When `meta.next_cursor` is present in the response, more data is available. Append `&cursor=VALUE` to fetch the next page. Copy the cursor from the previous response and pass it back unchanged; do not parse or construct it:
 
 ```bash
 # First page
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/trades/BTC?start=$START&end=$END&limit=1000"
 
-# Next page (use next_cursor from previous response)
-curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
-  "https://api.0xarchive.io/v1/hyperliquid/trades/BTC?start=$START&end=$END&limit=1000&cursor=1706000000000_12345"
+# Next page (copy next_cursor from the previous response)
+NEXT_CURSOR="..."
+curl -sG -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/trades/BTC" \
+  --data-urlencode "start=$START" \
+  --data-urlencode "end=$END" \
+  --data-urlencode "limit=1000" \
+  --data-urlencode "cursor=$NEXT_CURSOR"
 ```
 
 ## Tier Limits
