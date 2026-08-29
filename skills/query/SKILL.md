@@ -292,7 +292,7 @@ Lighter has no live WebSocket delivery for the entries below. These names remain
 | `l4_diffs` | Hyperliquid L4 orderbook diffs with user attribution; live and replayable |
 | `l4_orders` | Hyperliquid order lifecycle events; live and replayable |
 
-**Hyperliquid family L4 (realtime only):**
+**HIP-3, HIP-4, and Spot L4 (live only):**
 
 | Channel | Notes |
 |---------|-------|
