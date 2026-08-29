@@ -84,6 +84,7 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 | `/0xarchive:query ETH 4h candles last week` | Historical OHLCV candles |
 | `/0xarchive:query SOL liquidations last 24h` | Recent liquidation events |
 | `/0xarchive:query km:US500 trades last hour` | Hyperliquid HIP-3 trades |
+| `/0xarchive:query HIP-3 breadth above VWAP` | Current HIP-3 market breadth above session VWAP |
 | `/0xarchive:query system health` | Data quality status across venue APIs |
 | `/0xarchive:query BTC open interest on Lighter` | Lighter open-interest history |
 | `/0xarchive:query HIP-4 coin 0 candles last day` | HIP-4 implied-probability OHLCV |
@@ -92,15 +93,16 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 ## Data Available
 
 - **Orderbooks** -- Hyperliquid-family native L2 is capped at 20 levels per side. Lighter native L2 includes all served levels.
-- **L4 Orderbooks** -- All-level user-attributed reconstruction, diffs, and checkpoints across Hyperliquid core, Spot, HIP-3, and HIP-4.
+- **L4 Orderbooks** -- All-level user-attributed reconstruction, diffs, and checkpoints across Hyperliquid core, Spot, HIP-3, and HIP-4. Hyperliquid core `l4_diffs` and `l4_orders` also support historical WebSocket replay.
 - **L3 Orderbooks** -- Lighter order-level snapshots with owner filtering, capped at 250 orders per side from March 5, 2026.
 - **Orders** -- Order history with user attribution, order flow aggregation, TP/SL history, and current/historical voluntary trigger-level concentration on Hyperliquid core and HIP-3, separate from projected liquidation levels and the resting L4 book.
 - **Trades** -- Fill-level rows. Lighter has an observed global floor of August 27, 2025, exact starts vary by market, and maker/taker context is included where served. HIP-3 served trades begin February 1, 2026.
 - **Candles** -- OHLCV aggregations from 1m to 1w where served. Lighter candles begin August 1, 2025; HIP-4 implied-probability candles begin May 2, 2026; Hyperliquid Spot candles begin exactly 2025-03-22T10:50:22Z and accept a maximum limit of 1000 with opaque cursors.
-- **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding. Current Lighter funding values must not be compared across venues or annualized pending normalization repair.
+- **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding. Lighter funding values are fractional and non-annualized.
 - **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025; HIP-4 begins May 2, 2026 and updates at roughly 10 seconds.
 - **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; projected forced-liquidation level snapshots and history on Hyperliquid core and HIP-3; Lighter live liquidation-event and aggregated-volume routes with incomplete historical metadata.
 - **Price History** -- Mark, oracle, and mid price over time; HIP-3 also exposes current external oracle reference price and discovery bounds
+- **HIP-3 Breadth** -- Current and historical percentages of active HIP-3 instruments above session VWAP through `/v1/hyperliquid/hip3/breadth/above-vwap/current` and `/v1/hyperliquid/hip3/breadth/above-vwap`.
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
 - **Data Quality** -- Coverage, latency, SLA, incidents
@@ -119,6 +121,8 @@ Current Lighter data is queried through the `/v1/lighter` REST routes. Historica
 | `lighter_l3_orderbook` | `/v1/lighter/l3orderbook/{symbol}` |
 
 Use the corresponding REST history route, an export, or WebSocket replay for historical data. Hyperliquid live channels remain available where documented in `skills/query/SKILL.md`.
+
+For Hyperliquid core, `l4_diffs` and `l4_orders` support both live delivery and historical replay. Core L4 replay begins with an `l4_snapshot` at the nearest checkpoint at or before the requested start, then continues with ordered `l4_batch` pages. HIP-3, HIP-4, and Spot L4 channels remain live-only.
 
 ## Install
 

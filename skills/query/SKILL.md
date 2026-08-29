@@ -111,6 +111,8 @@ Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated August 2
 |----------|--------|-------|
 | `GET /instruments` | -- | List HIP-3 instruments |
 | `GET /instruments/{coin}` | -- | Single instrument |
+| `GET /breadth/above-vwap/current` | -- | Current percentage of active HIP-3 instruments above session VWAP |
+| `GET /breadth/above-vwap` | `start`, `end`, `interval`, `limit`, `cursor` | Historical HIP-3 breadth above session VWAP |
 | `GET /orderbook/{coin}` | `timestamp`, `depth` | All HIP-3 symbols, every tier. |
 | `GET /orderbook/{coin}/history` | `start`, `end`, `limit`, `cursor`, `depth` | All HIP-3 symbols, every tier. |
 | `GET /trades/{coin}` | `start`, `end`, `limit`, `cursor` | Trade history |
@@ -204,7 +206,7 @@ Coverage:
 
 Current Lighter data is served by the `/v1/lighter` REST routes. Historical Lighter data is available from the REST history routes and Data Catalog/Parquet exports; the six replay-only WebSocket channels are documented in the WebSocket section below. Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window.
 
-**Funding caveat:** Current Lighter funding values must not be compared across venues or annualized pending normalization repair.
+**Funding units:** Lighter funding values are fractional and non-annualized.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -281,12 +283,19 @@ Lighter has no live WebSocket delivery for the entries below. These names remain
 | `lighter_funding` | `/v1/lighter/funding/{symbol}/current` | `/v1/lighter/funding/{symbol}`, exports, or replay |
 | `lighter_l3_orderbook` | `/v1/lighter/l3orderbook/{symbol}` | `/v1/lighter/l3orderbook/{symbol}/history`, exports, or replay |
 
-**Order-level (realtime only):**
+**Hyperliquid core order-level (live + replay):**
+
+`l4_diffs` and `l4_orders` support both live delivery and historical replay. Core L4 replay begins with an `l4_snapshot` at the nearest checkpoint at or before the requested start, then continues with ordered `l4_batch` pages. Replay requests for HIP-3, HIP-4, and Spot L4 channels are rejected because those channels remain live-only.
 
 | Channel | Notes |
 |---------|-------|
-| `l4_diffs` | Hyperliquid L4 orderbook diffs with user attribution |
-| `l4_orders` | Hyperliquid order lifecycle events |
+| `l4_diffs` | Hyperliquid L4 orderbook diffs with user attribution; live and replayable |
+| `l4_orders` | Hyperliquid order lifecycle events; live and replayable |
+
+**Hyperliquid family L4 (realtime only):**
+
+| Channel | Notes |
+|---------|-------|
 | `hip3_l4_diffs` | HIP-3 L4 orderbook diffs |
 | `hip3_l4_orders` | HIP-3 order lifecycle events |
 | `hip4_l4_diffs` | HIP-4 L4 orderbook diffs |
