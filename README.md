@@ -4,7 +4,7 @@ Agent-ready 0xArchive market data prompts with no runtime dependency beyond `cur
 
 0xArchive is granular market data infrastructure for the Hyperliquid and Lighter.xyz venue APIs. Hyperliquid includes core perps, HIP-3 builder perps, HIP-4 outcome markets, and Hyperliquid Spot; HIP-3, HIP-4, and Spot stay under the Hyperliquid namespace. Lighter.xyz is the second top-level venue API. This repository ships the local skill package for Claude Code, ChatGPT Codex, and other skill-capable coding-agent environments.
 
-Use this repo when Claude Code, ChatGPT Codex, or another local skill-capable coding agent needs the fastest route from `X-API-Key` to one live market-data answer. Use [AI Clients](https://www.0xarchive.io/docs/ai-clients) to choose between skills, MCP, CLI, markdown docs, `llms.txt`, OpenAPI, and other Claude Code or ChatGPT Codex routes.
+Use this repo when Claude Code, ChatGPT Codex, or another local skill-capable coding agent needs the fastest route from `X-API-Key` to one live market-data answer. Use [AI Clients](https://docs.0xarchive.io/ai-clients) to choose between skills, MCP, CLI, markdown docs, `llms.txt`, OpenAPI, and other Claude Code or ChatGPT Codex routes.
 
 ## First Answer
 
@@ -74,7 +74,7 @@ Then ask:
 
 ## Claude Code And ChatGPT Codex
 
-Claude Code and ChatGPT Codex should both start from the same 0xArchive product truth: one authenticated request first, then expand into deeper tooling only after the result is concrete. Use this SKILL.md package directly in skill-capable clients. When a client does not support local skills, use the same API key through the CLI, SDKs, MCP where supported, [llms.txt](https://www.0xarchive.io/llms.txt), [OpenAPI](https://www.0xarchive.io/openapi.json), and markdown docs.
+Claude Code and ChatGPT Codex should both start from the same 0xArchive product truth: one authenticated request first, then expand into deeper tooling only after the result is concrete. Use this SKILL.md package directly in skill-capable clients. When a client does not support local skills, use the same API key through the CLI, SDKs, MCP where supported, [llms.txt](https://0xarchive.io/llms.txt), [OpenAPI](https://0xarchive.io/openapi.json), and markdown docs.
 
 ## Usage Examples
 
@@ -84,26 +84,45 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 | `/0xarchive:query ETH 4h candles last week` | Historical OHLCV candles |
 | `/0xarchive:query SOL liquidations last 24h` | Recent liquidation events |
 | `/0xarchive:query km:US500 trades last hour` | Hyperliquid HIP-3 trades |
+| `/0xarchive:query HIP-3 breadth above VWAP` | Current HIP-3 market breadth above session VWAP |
 | `/0xarchive:query system health` | Data quality status across venue APIs |
 | `/0xarchive:query BTC open interest on Lighter` | Lighter open-interest history |
 | `/0xarchive:query HIP-4 coin 0 candles last day` | HIP-4 implied-probability OHLCV |
-| `/0xarchive:query sign up with wallet 0x...` | Web3 onboarding for a free API key |
+| `/0xarchive:query verify wallet 0x...` | SIWE sign-in for an existing wallet account |
 
 ## Data Available
 
 - **Orderbooks** -- Hyperliquid-family native L2 is capped at 20 levels per side. Lighter native L2 includes all served levels.
-- **L4 Orderbooks** -- All-level user-attributed reconstruction, diffs, and checkpoints across Hyperliquid core, Spot, HIP-3, and HIP-4.
+- **L4 Orderbooks** -- All-level user-attributed reconstruction, diffs, and checkpoints across Hyperliquid core, Spot, HIP-3, and HIP-4. Hyperliquid core `l4_diffs` and `l4_orders` also support historical WebSocket replay.
 - **L3 Orderbooks** -- Lighter order-level snapshots with owner filtering, capped at 250 orders per side from March 5, 2026.
-- **Orders** -- Order history with user attribution, order flow aggregation, and TP/SL history on Hyperliquid families, separate from the resting L4 book.
+- **Orders** -- Order history with user attribution, order flow aggregation, TP/SL history, and current/historical voluntary trigger-level concentration on Hyperliquid core and HIP-3, separate from projected liquidation levels and the resting L4 book.
 - **Trades** -- Fill-level rows. Lighter has an observed global floor of August 27, 2025, exact starts vary by market, and maker/taker context is included where served. HIP-3 served trades begin February 1, 2026.
 - **Candles** -- OHLCV aggregations from 1m to 1w where served. Lighter candles begin August 1, 2025; HIP-4 implied-probability candles begin May 2, 2026; Hyperliquid Spot candles begin exactly 2025-03-22T10:50:22Z and accept a maximum limit of 1000 with opaque cursors.
-- **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding.
+- **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding. Lighter funding values are fractional and non-annualized.
 - **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025; HIP-4 begins May 2, 2026 and updates at roughly 10 seconds.
-- **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; Lighter live liquidation-event and aggregated-volume routes with incomplete historical metadata.
-- **Price History** -- Mark, oracle, and mid price over time
+- **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; projected forced-liquidation level snapshots and history on Hyperliquid core and HIP-3; Lighter live liquidation-event and aggregated-volume routes with incomplete historical metadata.
+- **Price History** -- Mark, oracle, and mid price over time; HIP-3 also exposes current external oracle reference price and discovery bounds
+- **HIP-3 Breadth** -- Current and historical percentages of active HIP-3 instruments above session VWAP through `/v1/hyperliquid/hip3/breadth/above-vwap/current` and `/v1/hyperliquid/hip3/breadth/above-vwap`.
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
 - **Data Quality** -- Coverage, latency, SLA, incidents
+
+## Lighter Data Access
+
+Current Lighter data is queried through the `/v1/lighter` REST routes. Historical data is available through REST history routes, Data Catalog/Parquet exports, and WebSocket replay. The six Lighter WebSocket channels are replay-only, not live subscriptions:
+
+| Replay channel | Current REST route |
+|---|---|
+| `lighter_orderbook` | `/v1/lighter/orderbook/{symbol}` |
+| `lighter_trades` | `/v1/lighter/trades/{symbol}/recent` |
+| `lighter_candles` | `/v1/lighter/candles/{symbol}` |
+| `lighter_open_interest` | `/v1/lighter/openinterest/{symbol}/current` |
+| `lighter_funding` | `/v1/lighter/funding/{symbol}/current` |
+| `lighter_l3_orderbook` | `/v1/lighter/l3orderbook/{symbol}` |
+
+Use the corresponding REST history route, an export, or WebSocket replay for historical data. Hyperliquid live channels remain available where documented in `skills/query/SKILL.md`.
+
+For Hyperliquid core, `l4_diffs` and `l4_orders` support both live delivery and historical replay. Core L4 replay begins with an `l4_snapshot` at the nearest checkpoint at or before the requested start, then continues with ordered `l4_batch` pages. HIP-3, HIP-4, and Spot L4 channels remain live-only.
 
 ## Install
 
@@ -137,7 +156,7 @@ Then use `/0xarchive` in that skill-capable client, e.g.:
 
 ## Data Catalog
 
-For file-based historical pulls, use the [Data Catalog](https://www.0xarchive.io/data). It lets you search markets, choose datasets and dates, see a live quote, and export zstd-compressed Parquet.
+For file-based historical pulls, use the [Data Catalog](https://0xarchive.io/data). It lets you search markets, choose datasets and dates, see a live quote, and export zstd-compressed Parquet.
 
 ## Links
 
@@ -151,13 +170,13 @@ For file-based historical pulls, use the [Data Catalog](https://www.0xarchive.io
 
 ## Requirements
 
-- An 0xArchive API key from [signup](https://www.0xarchive.io/signup)
+- An 0xArchive API key from [signup](https://0xarchive.io/signup)
 - `curl` and `jq` available in your shell
 
 ## Next Paths
 
-- First authenticated route: [Quick Start](https://www.0xarchive.io/docs/quick-start)
-- Skill/MCP/agent choice: [AI Clients](https://www.0xarchive.io/docs/ai-clients)
-- CLI for Claude Code, ChatGPT Codex, and other shell-first agent work: [CLI docs](https://www.0xarchive.io/docs/cli)
-- Plans and limits: [Pricing](https://www.0xarchive.io/pricing)
-- Status and changes: [Status](https://www.0xarchive.io/status), [Changelog](https://www.0xarchive.io/changelog)
+- First authenticated route: [Quick Start](https://docs.0xarchive.io/quickstart)
+- Skill/MCP/agent choice: [AI Clients](https://docs.0xarchive.io/ai-clients)
+- CLI for Claude Code, ChatGPT Codex, and other shell-first agent work: [CLI docs](https://docs.0xarchive.io/cli)
+- Plans and limits: [Pricing](https://0xarchive.io/pricing)
+- Status and changes: [Status](https://0xarchive.io/status), [Changelog](https://0xarchive.io/changelog)
