@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.12.0
+version: 1.12.1
 description: >
   Query historical and real-time crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
   HIP-3 builder perps live under the Hyperliquid namespace at /v1/hyperliquid/hip3.
@@ -389,7 +389,7 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
 
 | Tier | Price | Credits | Coins | Orderbook Depth | Lighter Granularity | Historical Depth | Rate Limit |
 |------|-------|---------|-------|-----------------|---------------------|------------------|------------|
-| Free | $0 | 50,000/mo | All symbols | Full depth | all granularities | Full history | 15 RPS |
+| Free | $0 | 50,000/mo | All symbols | Full depth | all granularities | Rolling 30 days (30-day span) | 15 RPS |
 | Build | $49/mo | 80M/mo | All symbols | Full depth | all granularities | Full history | 50 RPS |
 | Pro | $199/mo | 400M/mo | All symbols | Full depth | all granularities | Full history | 150 RPS |
 | Scale | $799/mo | 2B/mo | All symbols | Full depth | all granularities | Full history | 500 RPS |
@@ -403,7 +403,7 @@ Scale ($799/mo, $639 annual) also includes 20,000 WebSocket subscriptions across
 |-------------|---------|--------|
 | 400 | Bad request / validation error | Check params (missing start/end, invalid interval) |
 | 401 | Missing or invalid API key | Set `$OXARCHIVE_API_KEY` |
-| 403 | Plan limit reached | Hit a credit, RPS, concurrency, WebSocket-cap, or export limit; upgrade plan or wait for reset (all markets and schemas are available on every tier) |
+| 403 | Plan limit reached | Hit a credit, RPS, concurrency, WebSocket-cap, or export limit; upgrade plan or wait for reset (all markets and schemas are available on every tier; history age limits apply on Free) |
 | 404 | Symbol not found | Check coin name spelling and exchange |
 | 429 | Rate limited | Back off and retry |
 
