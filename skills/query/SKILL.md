@@ -204,7 +204,7 @@ Coverage:
 
 ### Lighter (`/v1/lighter`)
 
-Current Lighter data is served by the `/v1/lighter` REST routes. Historical Lighter data is available from the REST history routes and Data Catalog/Parquet exports; the six replay-only WebSocket channels are documented in the WebSocket section below. Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window.
+Current Lighter data is served by the `/v1/lighter` REST routes. Historical Lighter data is available from the REST history routes and Data Catalog/Parquet exports; the six replay-only WebSocket channels are documented in the WebSocket section below. Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of January 17, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from ingester deploy time and have no public backfill before that capture window.
 
 **Funding units:** Lighter funding values are fractional and non-annualized.
 
@@ -214,7 +214,7 @@ Current Lighter data is served by the `/v1/lighter` REST routes. Historical Ligh
 | `GET /instruments/{symbol}` | -- | Single instrument |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Latest or at timestamp |
 | `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth`, `granularity` | Default granularity: `checkpoint` |
-| `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor` | Per-fill history with maker/taker context; starts August 27, 2025 |
+| `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor` | Per-fill history with maker/taker context; earliest January 17, 2025, with exact starts varying by market |
 | `GET /trades/{symbol}/recent` | `limit` | Recent trades (no time range needed) |
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from August 1, 2025 |
 | `GET /funding/{symbol}/current` | -- | Current funding rate |
