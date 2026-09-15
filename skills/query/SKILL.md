@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.12.0
+version: 1.12.1
 description: >
   Query historical and real-time crypto market data from 0xArchive across two top-level venue APIs: Hyperliquid and Lighter.xyz.
   HIP-3 builder perps live under the Hyperliquid namespace at /v1/hyperliquid/hip3.
@@ -436,7 +436,7 @@ curl -sG -H "x-api-key: $OXARCHIVE_API_KEY" \
 
 | Tier | Price | Credits | Coins | Orderbook Depth | Lighter Granularity | Historical Depth | Rate Limit |
 |------|-------|---------|-------|-----------------|---------------------|------------------|------------|
-| Free | $0 | 50,000/mo | All symbols | Full depth | all granularities | Full history | 15 RPS |
+| Free | $0 | 50,000/mo | All symbols | Full depth | all granularities | Rolling 30 days (30-day span) | 15 RPS |
 | Build | $49/mo | 80M/mo | All symbols | Full depth | all granularities | Full history | 50 RPS |
 | Pro | $199/mo | 400M/mo | All symbols | Full depth | all granularities | Full history | 150 RPS |
 | Scale | $799/mo | 2B/mo | All symbols | Full depth | all granularities | Full history | 500 RPS |
@@ -450,7 +450,7 @@ Scale ($799/mo, $639 annual) also includes 20,000 WebSocket subscriptions across
 |-------------|---------|--------|
 | 400 | Bad request / validation error | Fix the request before retrying; inspect `error_code` or `param` when present |
 | 401 | Missing or invalid API key | Check `$OXARCHIVE_API_KEY` and key status |
-| 403 | Access denied / route or data access-gated | Choose another route or update access; do not retry unchanged |
+| 403 | Access denied or history outside the plan window | Check account status and the requested history window. All markets and schemas are available on every plan; Free history is limited to the rolling 30-day window. Do not retry unchanged. |
 | 404 | Route, symbol, or resource not found | Check venue namespace and symbol format |
 | 429 | Rate, concurrency, or credit limit reached | Honor `Retry-After` when present; otherwise back off with jitter and reduce concurrency |
 | 5xx | Server or upstream issue | Retry with a bounded jittered backoff, then check status/data quality |

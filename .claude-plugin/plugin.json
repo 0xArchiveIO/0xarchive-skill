@@ -1,7 +1,7 @@
 {
   "name": "0xarchive",
   "description": "Agent-ready 0xArchive market data skill for coding-agent clients across Hyperliquid and Lighter.xyz, including Hyperliquid HIP-3 builder perps, HIP-4 outcome markets, and Hyperliquid Spot. REST and WebSocket support are route-specific; HIP-4 trades, L4 events, and settlements are live while HIP-4 L2 and OI use REST or stored replay.",
-  "version": "1.12.0",
+  "version": "1.12.1",
   "author": {
     "name": "0xArchive"
   },
