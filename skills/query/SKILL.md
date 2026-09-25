@@ -189,7 +189,7 @@ Coverage:
 
 ### Lighter (`/v1/lighter`)
 
-Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Served trades have an observed global floor of August 27, 2025 at fill grain with maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from capture start and have no public backfill before that capture window.
+Lighter has native L2, L3, trades, candles, funding, open interest, liquidation events and volume, freshness, summary, and price history. Candles begin August 1, 2025. Funding and OI begin August 25, 2025 and update roughly every 10 seconds. Per-fill Lighter trade rows begin January 17, 2025 and carry maker/taker context; exact starts vary by market. Native L2 begins January 29, 2026. L3 begins March 5, 2026 and is capped at 250 resting orders per side. Liquidations are live-only from capture start and have no public backfill before that capture window.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -197,7 +197,7 @@ Lighter has native L2, L3, trades, candles, funding, open interest, liquidation 
 | `GET /instruments/{symbol}` | -- | Single instrument |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Latest or at timestamp |
 | `GET /orderbook/{symbol}/history` | `start`, `end`, `limit`, `cursor`, `depth`, `granularity` | Default granularity: `checkpoint` |
-| `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor` | Per-fill history with maker/taker context; starts August 27, 2025. Returns reconciled trades only; `end` is clamped to `meta.finalized_through` |
+| `GET /trades/{symbol}` | `start`, `end`, `limit`, `cursor` | Per-fill history with maker/taker context. Per-fill Lighter trade rows begin January 17, 2025; exact starts vary by market. Returns reconciled trades only; `end` is clamped to `meta.finalized_through` |
 | `GET /trades/{symbol}/recent` | `limit` | Recent trades (no time range needed), including preliminary trades not yet reconciled |
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from August 1, 2025 |
 | `GET /funding/{symbol}/current` | -- | Current funding rate |
