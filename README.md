@@ -100,6 +100,7 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 - **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. HIP-4 and Spot have no funding.
 - **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025; HIP-4 begins May 2, 2026 and updates at roughly 10 seconds.
 - **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; Lighter live liquidation-event and aggregated-volume routes with incomplete historical metadata.
+- **WebSocket** -- Live and replay support is channel-specific. Lighter orderbook, trades, open interest, and funding stream live on `wss://api.0xarchive.io/ws`; Lighter candles and L3 orderbooks are replay-only.
 - **Price History** -- Mark, oracle, and mid price over time
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
