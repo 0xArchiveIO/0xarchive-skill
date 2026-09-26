@@ -38,7 +38,7 @@ curl -s -H "x-api-key: $OXARCHIVE_API_KEY" "https://api.0xarchive.io/v1/..."
 | Lighter (mainnet) | `/v1/lighter` | UPPERCASE | `BTC`, `ETH` |
 | Lighter on Robinhood Chain | `/v1/rh-lighter` | UPPERCASE perps; dashed `BASE-USDG` spot | `BTC`, `ETH`, `AAPL-USDG` |
 
-Hyperliquid and both Lighter deployments auto-uppercase the symbol server-side. HIP-3 coin names are passed through as-is. HIP-4 coins encode outcome and side: `0` is outcome 0 / side 0 (YES), `1` is outcome 0 / side 1 (NO), `10` is outcome 1 / side 0, etc. The bare numeric form is canonical; the legacy `#0` and `%230` forms still work for backward compatibility. Spot symbols are dashed (`HYPE-USDC`, `PURR-USDC`, `AAPL-USDC`); the server resolves the dashed form to the wire format (`PURR/USDC`, `@107`) internally, so always use the dashed form.
+Hyperliquid and both Lighter deployments auto-uppercase the symbol server-side on market-data routes. Lighter and Robinhood Chain account positions routes (`/positions/{symbol}`, `/positions/{symbol}/summary`, and the `symbol` filter on account routes) match the symbol exactly, so pass it uppercase as `GET /instruments` lists it (`BTC`, not `btc`). HIP-3 coin names are passed through as-is. HIP-4 coins encode outcome and side: `0` is outcome 0 / side 0 (YES), `1` is outcome 0 / side 1 (NO), `10` is outcome 1 / side 0, etc. The bare numeric form is canonical; the legacy `#0` and `%230` forms still work for backward compatibility. Spot symbols are dashed (`HYPE-USDC`, `PURR-USDC`, `AAPL-USDC`); the server resolves the dashed form to the wire format (`PURR/USDC`, `@107`) internally, so always use the dashed form.
 
 Lighter on Robinhood Chain markets and account indices are separate from Lighter mainnet even when the symbol text matches: `BTC` under `/v1/rh-lighter` is a different market from `BTC` under `/v1/lighter`. Keep the namespace with every result.
 
@@ -223,12 +223,13 @@ Account positions for Lighter mainnet live under the same prefix (`/accounts/{ac
 Robinhood Chain is Lighter's second deployment, not a third venue. `/v1/rh-lighter` mirrors `/v1/lighter` with the same parameters and response shapes, except the two `l3orderbook` routes: this deployment has no L3 capture, so they return 404 with a message pointing to `/v1/rh-lighter/orderbook/{symbol}`. Markets are quoted in USDG: 84 at launch, 57 perps and 27 spot. Perp symbols are uppercase (`BTC`, `ETH`); spot symbols are the base and quote joined by a dash (`AAPL-USDG`). Funding, open interest, and liquidations exist for perps only. Start with `GET /instruments` to discover symbols.
 
 Coverage (UTC):
-- **Trades and liquidations**: from 2026-06-26 20:10:26, the deployment's first trade.
+- **Trades**: from 2026-06-26 20:10:26, the deployment's first trade.
 - **Order book, open interest, and funding**: from 2026-08-22 18:43. Earlier history of these streams is not recoverable.
+- **Liquidations**: from 2026-08-22 18:43. Requests that start earlier return 400 (`... from 2026-08-22 18:43 UTC onward`).
 - **Candles**: from 2026-06-26 once candles are enabled for this deployment. Until then the route returns 400 `Candles are not yet available for Lighter (Robinhood Chain). ...`.
 - **L3**: not captured. Use L2.
 
-Trades are two-tier, exactly like Lighter mainnet. `GET /trades/{symbol}` returns finalized rows (`source: "bucket"`) and clamps `end` to `meta.finalized_through`, which trails the present by about a day; when it clamps, the response adds `meta.requested_end` and `meta.clamped_to`. `GET /trades/{symbol}/recent` includes newer preliminary rows (`source: "ws"`), counted by `meta.preliminary_row_count`. Prices and amounts are in USDG, and account fields hold Robinhood Chain account indices, unrelated to mainnet indices with the same number. Liquidation rows recovered from the deployment's trade export for the period before live capture carry `source: "bucket"` and an empty `raw_json`; live rows carry the original message in `raw_json`.
+Trades are two-tier, exactly like Lighter mainnet. `GET /trades/{symbol}` returns finalized rows (`source: "bucket"`) and clamps `end` to `meta.finalized_through`, which trails the present by about a day; when it clamps, the response adds `meta.requested_end` and `meta.clamped_to`. `GET /trades/{symbol}/recent` includes newer preliminary rows (`source: "ws"`), counted by `meta.preliminary_row_count`. Prices and amounts are in USDG, and account fields hold Robinhood Chain account indices, unrelated to mainnet indices with the same number.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -243,7 +244,7 @@ Trades are two-tier, exactly like Lighter mainnet. `GET /trades/{symbol}` return
 | `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history (perps) from 2026-08-22 18:43 UTC |
 | `GET /openinterest/{symbol}/current` | -- | Current OI (perps) |
 | `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history (perps) from 2026-08-22 18:43 UTC |
-| `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events (perps) from 2026-06-26 20:10:26 UTC |
+| `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events (perps) from 2026-08-22 18:43 UTC |
 | `GET /liquidations/{symbol}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Time-bucketed liquidation volume |
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary |
@@ -266,7 +267,7 @@ Append these paths to the venue prefix:
 
 | Hyperliquid and HIP-3 | Lighter and Robinhood Chain | Params | Notes |
 |-----------------------|-----------------------------|--------|-------|
-| `GET /wallets/{address}/positions` | `GET /accounts/{account_index}/positions` | `timestamp`, `symbol`, `dex` (HIP-3), `limit`, `cursor` | Open positions at the latest live snapshot, or as of `timestamp`. `data.positions`, `data.account` (first page), `data.account_seen` when empty |
+| `GET /wallets/{address}/positions` | `GET /accounts/{account_index}/positions` | `timestamp`, `symbol`, `dex` (HIP-3), `limit`, `cursor` | Open positions at the latest live snapshot, or as of `timestamp`. `data.positions`; `data.account` on the first page of a snapshot read (HIP-3 needs `dex` or a dex-prefixed `symbol`; null when reconstructed or when a Lighter `symbol` filter is set); `data.account_seen` when empty |
 | `GET /wallets/{address}/positions/history` | `GET /accounts/{account_index}/positions/history` | `start`, `end`, `symbol`, `dex` (HIP-3), `limit`, `cursor` | One row per open position per committed hour in `[start, end)` |
 | `GET /wallets/{address}/positions/changes` | `GET /accounts/{account_index}/positions/changes` | `start`, `end`, `symbol`, `dex` (HIP-3), `limit`, `cursor` | One row per fill leg that changed a position, oldest first, with `start_position`, `end_position`, `event_type`, and `cause` |
 | `GET /wallets/{address}/account` | `GET /accounts/{account_index}/account` | `dex` (HIP-3) | Latest account summary. Lighter returns position aggregates only (no margin or collateral fields) |
@@ -279,7 +280,7 @@ Two more routes support these: `GET /v1/lighter/accounts?l1_address=0x...` lists
 
 How to read positions:
 - `timestamp`, `hour`, `start`, and `end` are Unix milliseconds; `hour` must be an exact UTC hour. `address` is a 42-character `0x` hex string; Lighter paths take integer account indices only.
-- Without `timestamp`, wallet and account routes read the latest live snapshot; `meta.stale` is `true`, with a `meta.notice`, when it is more than 12 minutes old. With `timestamp`, the response is the state after every event before that instant: an exact hour with a committed snapshot serves that snapshot (`meta.source: "snapshot"`); any other instant is reconstructed (`meta.source: "reconstructed"`), with exact size, entry, and `opened_at`, mark-based values at that instant, and snapshot-only fields such as leverage, margin, liquidation price, and funding set to `null`.
+- Without `timestamp`, wallet and account routes read the latest live snapshot; `meta.stale` is `true`, with a `meta.notice`, when it is more than 12 minutes old. With `timestamp`, the response is the state after every event before that instant: an exact hour with a committed snapshot serves that snapshot (`meta.source: "snapshot"`); any other instant is reconstructed (`meta.source: "reconstructed"`), with exact size, entry, and `opened_at` and mark-based values at that instant. Snapshot-only fields are empty there: on Hyperliquid and HIP-3, `leverage.value`, `max_leverage`, `margin_used`, `liquidation_price`, `return_on_equity`, and the `cum_funding` members are `null`, `leverage.type` is `"unknown"`, and `liquidation_price_status` is `"unavailable"`. Lighter rows leave those fields empty on every read, with `leverage.type` holding the margin mode. Use `meta.source`, not a null field, to tell a reconstructed read apart.
 - Reads are clamped to `meta.built_through`, adding `meta.requested_end` and `meta.clamped_to` when they are. `meta.finalized_through` marks how far the data is final; on Lighter it follows the trade finalization watermark, about a day behind, and newer Lighter rows carry `finalized: false`.
 - An empty wallet page sets `data.account_seen`: `flat` (activity recorded, nothing open), `never_seen` (no recorded activity in covered history; `meta.notice` and `meta.coverage_from` scope the claim), or `outside_coverage` (the instant is before coverage).
 - Every row carries `quality` (`complete`, `partial`, `degraded`; Lighter rows can also be `preliminary`, `unreconciled`, or `incomplete`), and `meta.quality` reports the snapshot the page was read from.
@@ -744,9 +745,12 @@ ACCOUNT_INDEX=123456
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/lighter/accounts/$ACCOUNT_INDEX/positions" | jq '.data'
 
-# Lighter on Robinhood Chain positions for an account index (no L1 lookup on this deployment)
+# Lighter on Robinhood Chain positions for one of its own account indices (no L1 lookup on this deployment).
+# Take the index from a Robinhood Chain trade, liquidation, or /v1/rh-lighter/positions/{symbol} row,
+# never from the mainnet lookup above: the same number is a different account here.
+RH_ACCOUNT_INDEX=654321
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
-  "https://api.0xarchive.io/v1/rh-lighter/accounts/$ACCOUNT_INDEX/positions" | jq '.data'
+  "https://api.0xarchive.io/v1/rh-lighter/accounts/$RH_ACCOUNT_INDEX/positions" | jq '.data'
 
 # Every open Hyperliquid position at one committed hour (bulk; follow meta.next_cursor)
 NOW=$(( $(date +%s) * 1000 )); HOUR=$(( (NOW / 3600000 - 2) * 3600000 ))
