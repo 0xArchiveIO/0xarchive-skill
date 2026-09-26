@@ -223,13 +223,12 @@ Account positions for Lighter mainnet live under the same prefix (`/accounts/{ac
 Robinhood Chain is Lighter's second deployment, not a third venue. `/v1/rh-lighter` mirrors `/v1/lighter` with the same parameters and response shapes, except the two `l3orderbook` routes: this deployment has no L3 capture, so they return 404 with a message pointing to `/v1/rh-lighter/orderbook/{symbol}`. Markets are quoted in USDG: 84 at launch, 57 perps and 27 spot. Perp symbols are uppercase (`BTC`, `ETH`); spot symbols are the base and quote joined by a dash (`AAPL-USDG`). Funding, open interest, and liquidations exist for perps only. Start with `GET /instruments` to discover symbols.
 
 Coverage (UTC):
-- **Trades**: from 2026-06-26 20:10:26, the deployment's first trade.
+- **Trades and liquidations**: from 2026-06-26 20:10:26, the deployment's first trade. Requests that start earlier return 400 (`... from 2026-06-26 20:10:26 UTC onward`). The first liquidation is at 2026-06-27 23:14, so a liquidations range before it returns an empty page, not an error.
 - **Order book, open interest, and funding**: from 2026-08-22 18:43. Earlier history of these streams is not recoverable.
-- **Liquidations**: from 2026-08-22 18:43. Requests that start earlier return 400 (`... from 2026-08-22 18:43 UTC onward`).
 - **Candles**: from 2026-06-26 once candles are enabled for this deployment. Until then the route returns 400 `Candles are not yet available for Lighter (Robinhood Chain). ...`.
 - **L3**: not captured. Use L2.
 
-Trades are two-tier, exactly like Lighter mainnet. `GET /trades/{symbol}` returns finalized rows (`source: "bucket"`) and clamps `end` to `meta.finalized_through`, which trails the present by about a day; when it clamps, the response adds `meta.requested_end` and `meta.clamped_to`. `GET /trades/{symbol}/recent` includes newer preliminary rows (`source: "ws"`), counted by `meta.preliminary_row_count`. Prices and amounts are in USDG, and account fields hold Robinhood Chain account indices, unrelated to mainnet indices with the same number.
+Trades are two-tier, exactly like Lighter mainnet. `GET /trades/{symbol}` returns finalized rows (`source: "bucket"`) and clamps `end` to `meta.finalized_through`, which trails the present by about a day; when it clamps, the response adds `meta.requested_end` and `meta.clamped_to`. `GET /trades/{symbol}/recent` includes newer preliminary rows (`source: "ws"`), counted by `meta.preliminary_row_count`. Prices and amounts are in USDG, and account fields hold Robinhood Chain account indices, unrelated to mainnet indices with the same number. Liquidation rows from before live capture (2026-06-27 to 2026-08-22) were backfilled from the venue's finalized export: they carry `source: "bucket"` and an empty `raw_json`. Live-captured rows carry `source: "ws"` and the venue's raw JSON in `raw_json`.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -244,8 +243,8 @@ Trades are two-tier, exactly like Lighter mainnet. `GET /trades/{symbol}` return
 | `GET /funding/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Funding history (perps) from 2026-08-22 18:43 UTC |
 | `GET /openinterest/{symbol}/current` | -- | Current OI (perps) |
 | `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history (perps) from 2026-08-22 18:43 UTC |
-| `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events (perps) from 2026-08-22 18:43 UTC |
-| `GET /liquidations/{symbol}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Time-bucketed liquidation volume |
+| `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events (perps) from 2026-06-26 20:10:26 UTC; rows before 2026-08-22 carry `source: "bucket"` and an empty `raw_json` |
+| `GET /liquidations/{symbol}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Time-bucketed liquidation volume from 2026-06-26 20:10:26 UTC |
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary |
 | `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle price history |
