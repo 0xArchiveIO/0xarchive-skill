@@ -1,6 +1,6 @@
 ---
 name: 0xarchive
-version: 1.15.0
+version: 1.15.1
 description: >
   Query historical and real-time crypto market data from 0xArchive across two venues: Hyperliquid and Lighter.
   Lighter has two deployments: mainnet at /v1/lighter and Robinhood Chain at /v1/rh-lighter (USDG-quoted, e.g. BTC, AAPL-USDG).
@@ -348,7 +348,7 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | `orderbook`, `hip3_orderbook` | Live and replayable L2 orderbook updates |
 | `spot_orderbook` | Hyperliquid Spot L2 orderbook updates. Symbol is dashed (`HYPE-USDC`). Live only; replay is not supported. |
 | `hip4_orderbook` | Stored replay only while the live HIP-4 L2 bridge is paused; use REST for current snapshots |
-| `orderbook_full`, `hip3_orderbook_full` | Full-depth L2 (every level) derived from L4; live and timed replay |
+| `orderbook_full`, `hip3_orderbook_full` | Full-depth L2 (every level) derived from L4; live only (no replay) |
 | `hip4_open_interest` | Stored replay only while the live HIP-4 OI bridge is paused; use REST for current outcome-side OI |
 
 **Order-level (live; core L4 also replays):**
