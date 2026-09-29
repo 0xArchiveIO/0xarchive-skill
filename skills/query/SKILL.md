@@ -1,11 +1,11 @@
 ---
 name: 0xarchive
-version: 1.14.0
+version: 1.15.0
 description: >
   Query historical and real-time crypto market data from 0xArchive across two venues: Hyperliquid and Lighter.
   Lighter has two deployments: mainnet at /v1/lighter and Robinhood Chain at /v1/rh-lighter (USDG-quoted, e.g. BTC, AAPL-USDG).
   Hyperliquid includes HIP-3 builder perps (/v1/hyperliquid/hip3), HIP-4 outcome markets (/v1/hyperliquid/hip4), and Spot (/v1/hyperliquid/spot, e.g. HYPE-USDC).
-  Covers orderbooks, trades, candles, funding, open interest, liquidations, account positions, outcome markets, TWAP, and data quality; data types are route-specific.
+  Covers orderbooks, trades, candles, funding, open interest, liquidations, account positions, outcome markets, TWAP, CVD, breadth, webhooks, and data quality; data types are route-specific.
   WebSocket support is channel-specific: Lighter orderbook, trades, open interest, and funding stream live on both deployments; Lighter candles and L3 are replay-only.
   Use in Claude Code, Codex, and SKILL.md-compatible agents for market data, orderbooks, trades, candles, funding, prices, positions, real-time streams, prediction markets, or spot pairs on Hyperliquid, HIP-3, HIP-4, Hyperliquid Spot, Lighter, or Lighter on Robinhood Chain.
 allowed-tools: Bash
@@ -15,7 +15,7 @@ metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OX
 
 # 0xArchive API Skill
 
-Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive covers two venues: **Hyperliquid** and **Lighter**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. **Hyperliquid Spot** has 326 authenticated inventory rows at `/v1/hyperliquid/spot`. Lighter has two deployments: mainnet at `/v1/lighter` and **Robinhood Chain** at `/v1/rh-lighter`. Robinhood Chain is a second deployment of Lighter, not a third venue. Data types are route-specific: orderbooks, trades, candles, funding rates, open interest, liquidations, account positions, outcome markets, spot, TWAP, and data quality metrics.
+Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive covers two venues: **Hyperliquid** and **Lighter**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. **Hyperliquid Spot** lives at `/v1/hyperliquid/spot`. Lighter has two deployments: mainnet at `/v1/lighter` and **Robinhood Chain** at `/v1/rh-lighter`. Robinhood Chain is a second deployment of Lighter, not a third venue. Data types are route-specific: orderbooks, trades, candles, funding rates, open interest, liquidations, account positions, outcome markets, spot, TWAP, and data quality metrics.
 
 Orderbook depth limits apply to L2 snapshot endpoints only.
 
@@ -44,7 +44,7 @@ Lighter on Robinhood Chain markets and account indices are separate from Lighter
 
 ## Timestamps
 
-All timestamps are **Unix milliseconds**. Use these shell helpers:
+Request time parameters (`start`, `end`, `timestamp`, and `at`) are **Unix milliseconds**. Response records may expose RFC 3339 timestamp strings. Use these shell helpers for request windows:
 
 ```bash
 NOW=$(( $(date +%s) * 1000 ))
@@ -64,7 +64,7 @@ Every response follows this shape:
   "meta": {
     "count": 100,
     "request_id": "uuid",
-    "next_cursor": "opaque-cursor"   // present when more pages exist
+    "next_cursor": "1706000000000"   // present when more pages exist; pass back unchanged
   }
 }
 ```
@@ -89,12 +89,20 @@ Some routes add optional `meta` fields. Lighter trades (both deployments) carry 
 | `GET /openinterest/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
 | `GET /liquidations/{symbol}` | `start`, `end`, `limit`, `cursor` | Liquidation events |
 | `GET /liquidations/{symbol}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Aggregated liquidation volume (USD) |
+| `GET /liquidations/{symbol}/levels` | `range_pct`, `buckets`, `side`, `at` | Projected forced-liquidation price levels (refreshed about every five minutes) |
+| `GET /liquidations/{symbol}/levels/history` | `start`, `end`, `limit`, `cursor`, `summary`, `range_pct`, `buckets`, `side` | Liquidation levels history |
+| `GET /orders/{symbol}/trigger-levels` | `range_pct`, `buckets`, `side` | Resting TP/SL trigger price levels |
+| `GET /orders/{symbol}/trigger-levels/history` | `start`, `end`, `limit`, `cursor`, `summary`, `range_pct`, `buckets`, `side` | Trigger levels history |
+| `GET /cvd/{symbol}` | `start`, `end`, `interval`, `limit`, `cursor` | Cumulative volume delta; pass `meta.next_cursor` back to page |
+| `GET /breadth/above-vwap/current` | -- | Percent of eligible instruments above their UTC-session VWAP |
+| `GET /breadth/above-vwap` | `start`, `end`, `interval`, `limit`, `cursor` | Breadth history |
+| `GET /wallets/classify` | `min_orders`, `min_volume_usd`, `uses_twap`, `uses_priority_gas`, `min_cancel_rate`, `max_cancel_rate`, `date`, `sort`, `order`, `limit`, `offset` | Classify wallets by trading behaviour |
 | `GET /liquidations/user/{address}` | `start`, `end`, `limit`, `cursor`, `coin` | Liquidations for a user |
 | `GET /freshness/{symbol}` | -- | Data freshness per data type |
 | `GET /summary/{symbol}` | -- | Combined market summary (price, funding, OI, volume, liquidations) |
 | `GET /prices/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
 | `GET /orders/{symbol}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution |
-| `GET /orders/{symbol}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation |
+| `GET /orders/{symbol}/flow` | `start`, `end`, `interval`, `limit`, `cursor` | Order flow aggregation; `cursor` resumes after a bucket |
 | `GET /orders/{symbol}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history |
 | `GET /orderbook/{symbol}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction |
 | `GET /orderbook/{symbol}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs |
@@ -105,7 +113,7 @@ Some routes add optional `meta` fields. Lighter trades (both deployments) carry 
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated August 22, 2026 inventory has 267 instruments across 10 builder prefixes: `abcd`, `cash`, `flx`, `hyna`, `io`, `km`, `mkts`, `para`, `vntl`, and `xyz`. Served trades, candles, and liquidation events begin February 1, 2026; native L2, funding, and OI begin February 16, 2026; L4 diffs and order-lifecycle rows have a March 10, 2026 family floor; reconstructable checkpoints and point-in-time state can begin later by symbol. All HIP-3 symbols are available on every tier.
+Coin names are **case-sensitive** and carry the builder prefix (e.g., `km:US500`, `xyz:XYZ100`). Builders list and delist markets over time; call `GET /instruments` for the current set. Trades and oracle prices begin 2025-10-13; candles and liquidations 2025-12-22; native L2, funding, and OI 2026-02-16; L4 diffs and order-lifecycle rows 2026-03-10; reconstructable checkpoints and point-in-time state can begin later by symbol. A range that starts before a dataset's first row is served from that row. All HIP-3 symbols are available on every tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -122,11 +130,21 @@ Coin names are **case-sensitive** (e.g., `km:US500`). The authenticated August 2
 | `GET /openinterest/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | OI history |
 | `GET /liquidations/{coin}` | `start`, `end`, `limit`, `cursor` | Liquidation events |
 | `GET /liquidations/{coin}/volume` | `start`, `end`, `limit`, `cursor`, `interval` | Aggregated liquidation volume (USD) |
+| `GET /liquidations/{coin}/levels` | `range_pct`, `buckets`, `side`, `at` | Projected forced-liquidation price levels |
+| `GET /liquidations/{coin}/levels/history` | `start`, `end`, `limit`, `cursor`, `summary`, `range_pct`, `buckets`, `side` | Liquidation levels history |
+| `GET /orders/{coin}/trigger-levels` | `range_pct`, `buckets`, `side` | Resting TP/SL trigger price levels |
+| `GET /orders/{coin}/trigger-levels/history` | `start`, `end`, `limit`, `cursor`, `summary`, `range_pct`, `buckets`, `side` | Trigger levels history |
+| `GET /cvd/{coin}` | `start`, `end`, `interval`, `limit`, `cursor` | Cumulative volume delta |
+| `GET /oracle/external-price/{coin}` | -- | Latest external (oracle source) price |
+| `GET /oracle/discovery-bounds/{coin}` | -- | Current oracle price discovery bounds |
+| `GET /breadth/above-vwap/current` | -- | Percent of eligible HIP-3 instruments above session VWAP |
+| `GET /breadth/above-vwap` | `start`, `end`, `interval`, `limit`, `cursor` | HIP-3 breadth history |
+| `GET /wallets/classify` | same as Hyperliquid | Classify HIP-3 wallets by trading behaviour |
 | `GET /freshness/{coin}` | -- | Data freshness per data type |
 | `GET /summary/{coin}` | -- | Combined market summary (price, funding, OI) |
 | `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Mark/oracle/mid price history |
 | `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history with user attribution |
-| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation |
+| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit`, `cursor` | Order flow aggregation; `cursor` resumes after a bucket |
 | `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history |
 | `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction |
 | `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs |
@@ -143,6 +161,8 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 |----------|--------|-------|
 | `GET /outcomes` | -- | List all outcome markets (HIP-4 only; not present on other venues) |
 | `GET /outcomes/{outcome_id}` | -- | Single outcome market detail (HIP-4 only) |
+| `GET /questions` | `limit`, `cursor` | Multi-outcome questions, each grouping several binary outcomes |
+| `GET /questions/{question_id}` | -- | Single question |
 | `GET /instruments` | -- | List HIP-4 instruments (one per side per outcome) |
 | `GET /instruments/{coin}` | -- | Single instrument. Coin is the bare numeric (e.g. `0`); legacy `%230` also accepted. |
 | `GET /orderbook/{coin}` | `timestamp`, `depth` | Latest or at timestamp |
@@ -156,7 +176,7 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 | `GET /summary/{coin}` | -- | Combined market summary (implied probability + OI; no funding) |
 | `GET /prices/{coin}` | `start`, `end`, `limit`, `cursor`, `interval` | Implied-probability history (mark/oracle/mid in 0..1) |
 | `GET /orders/{coin}/history` | `start`, `end`, `user`, `status`, `order_type`, `limit`, `cursor` | Order history |
-| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit` | Order flow aggregation |
+| `GET /orders/{coin}/flow` | `start`, `end`, `interval`, `limit`, `cursor` | Order flow aggregation; `cursor` resumes after a bucket |
 | `GET /orders/{coin}/tpsl` | `start`, `end`, `user`, `triggered`, `limit`, `cursor` | TP/SL order history |
 | `GET /orderbook/{coin}/l4` | `timestamp`, `depth` | L4 orderbook reconstruction |
 | `GET /orderbook/{coin}/l4/diffs` | `start`, `end`, `limit`, `cursor` | L4 orderbook diffs |
@@ -167,7 +187,7 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 
 ### Hyperliquid Spot (`/v1/hyperliquid/spot`)
 
-The authenticated inventory has 326 Hyperliquid Spot rows (HYPE-USDC, PURR-USDC, AAPL-USDC, ...). Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, open interest, or liquidations**. Spot candles are served from 2025-03-22T10:50:22Z through a dedicated OHLCV route. Use spot for pair discovery, candles, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
+Spot pairs include HYPE-USDC, PURR-USDC and AAPL-USDC; call `GET /pairs` for the current set. Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, open interest, or liquidations**. Spot candles are served from 2025-03-22T10:50:22Z through a dedicated OHLCV route. Use spot for pair discovery, candles, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
 
 Coverage:
 - **Candles**: served from 2025-03-22T10:50:22Z at `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, and `1w`; maximum `limit` is 1000 and `next_cursor` is opaque.
@@ -177,7 +197,7 @@ Coverage:
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
-| `GET /pairs` | -- | List current Spot pairs; authenticated inventory has 326 rows |
+| `GET /pairs` | -- | List current Spot pairs |
 | `GET /pairs/{symbol}` | -- | Single pair detail (e.g. `HYPE-USDC`) |
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from 2025-03-22T10:50:22Z; intervals `1m` through `1w`; max `limit` 1000; cursor is opaque |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Current L2 orderbook (live from 2026-05-05) |
@@ -328,6 +348,7 @@ Real-time + historical-replay channels available via WebSocket (`wss://api.0xarc
 | `orderbook`, `hip3_orderbook` | Live and replayable L2 orderbook updates |
 | `spot_orderbook` | Hyperliquid Spot L2 orderbook updates. Symbol is dashed (`HYPE-USDC`). Live only; replay is not supported. |
 | `hip4_orderbook` | Stored replay only while the live HIP-4 L2 bridge is paused; use REST for current snapshots |
+| `orderbook_full`, `hip3_orderbook_full` | Full-depth L2 (every level) derived from L4; live and timed replay |
 | `hip4_open_interest` | Stored replay only while the live HIP-4 OI bridge is paused; use REST for current outcome-side OI |
 
 **Order-level (live; core L4 also replays):**
@@ -439,6 +460,30 @@ The Robinhood Chain deployment has its own channels, prefixed `rh_lighter_`. Liv
 - Slow-connection notices and stops work as on mainnet, naming the `rh_lighter_*` channel.
 - A multi-channel replay cannot mix `lighter_*` and `rh_lighter_*` channels: they are separate exchange families.
 
+### Webhooks (`/v1/webhooks`)
+
+Push delivery of market and account events to your HTTPS endpoint. Delivery starts on the Build plan; the estimate and dry-run previews answer on every plan. Full guide: https://docs.0xarchive.io/webhooks.
+
+| Endpoint | Body / Params | Notes |
+|----------|---------------|-------|
+| `GET /event-types` | -- | Event types and their condition fields |
+| `GET /limits` | -- | Plan limits and current usage |
+| `GET /endpoints` / `POST /endpoints` | `url`, `description` | List or create receiving endpoints (the secret is returned once) |
+| `DELETE /endpoints/{id}` | -- | Delete an endpoint |
+| `POST /endpoints/{id}/enable` | -- | Re-enable an endpoint disabled after failures |
+| `POST /endpoints/{id}/rotate` | -- | Rotate the signing secret (old and new both sign for 24 hours) |
+| `POST /endpoints/{id}/test` | -- | Send a test delivery |
+| `GET /endpoints/{id}/deliveries` | `limit` | Delivery log |
+| `POST /deliveries/{id}/redeliver` | -- | Send a past delivery again |
+| `GET /subscriptions` / `POST /subscriptions` | `event_type`, `endpoint_id`, `config` | List or create subscriptions |
+| `PATCH /subscriptions/{id}` / `DELETE /subscriptions/{id}` | subscription fields | Update or delete |
+| `POST /subscriptions/{id}/resume`, `POST /subscriptions/resume` | -- | Resume one or every paused subscription |
+| `POST /subscriptions/estimate` | `event_type`, `config`, `lookback_days` | Expected delivery volume before creating |
+| `POST /subscriptions/dry-run` | `event_type`, `config` | Events the rule would have matched recently |
+| `GET /addresses` / `POST /addresses` / `DELETE /addresses/{id}` | `address`, `venue` | Watched wallets for account-scoped events |
+
+Every delivery carries an `0xa-signature` header (`t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`; two `v1` values during a rotation). Verify against the raw request body, reject stale timestamps, and compare in constant time.
+
 ### Web3 Authentication (`/v1`)
 
 Use SIWE for existing wallet accounts and x402 for paid wallet access. Free accounts are created through the standard signup at `https://www.0xarchive.io/signup`. No API key is required for these Web3 endpoints.
@@ -491,7 +536,7 @@ Use SIWE for existing wallet accounts and x402 for paid wallet access. Free acco
 | `start` | int | Start timestamp (Unix ms). Defaults to 24h ago. |
 | `end` | int | End timestamp (Unix ms). Defaults to now. |
 | `limit` | int | Max records. Default 100; candle limits are route-specific: max 1000 for Spot and HIP-4, max 10000 for core Hyperliquid, HIP-3, and both Lighter deployments. Account positions routes have their own limits (see [Account Positions](#account-positions)). |
-| `cursor` | string | Pagination cursor from `meta.next_cursor`. |
+| `cursor` | string | Pagination cursor from `meta.next_cursor`. Pass it back unchanged; do not parse or construct it. |
 | `interval` | string | Candle interval: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`. Default: `1h`. For OI/funding: `5m`, `15m`, `30m`, `1h`, `4h`, `1d`. Omit for raw data: core funding is roughly 1 minute; HIP-3 funding/OI, HIP-4 OI, and Lighter funding/OI are roughly 10 seconds. |
 | `depth` | int | Route-specific orderbook depth. Hyperliquid-family native L2 caps at 20 levels per side; Lighter L3 caps at 250 orders per side. |
 | `granularity` | string | Lighter orderbook resolution (both deployments): `checkpoint` (default), `30s`, `10s`, `1s`, `tick`. |
@@ -539,16 +584,21 @@ Each trade/fill record includes:
 
 ## Pagination
 
-When `meta.next_cursor` is present in the response, more data is available. Append `&cursor=VALUE` to fetch the next page:
+When `meta.next_cursor` is present in the response, more data is available. Pass it back unchanged as `cursor`; do not parse or construct it:
 
 ```bash
 # First page
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
   "https://api.0xarchive.io/v1/hyperliquid/trades/BTC?start=$START&end=$END&limit=1000"
 
-# Next page (use next_cursor from previous response)
-curl -s -H "x-api-key: $OXARCHIVE_API_KEY" \
-  "https://api.0xarchive.io/v1/hyperliquid/trades/BTC?start=$START&end=$END&limit=1000&cursor=1706000000000_12345"
+# Next page (copy next_cursor from the previous response)
+NEXT_CURSOR="..."
+curl -sG -H "x-api-key: $OXARCHIVE_API_KEY" \
+  "https://api.0xarchive.io/v1/hyperliquid/trades/BTC" \
+  --data-urlencode "start=$START" \
+  --data-urlencode "end=$END" \
+  --data-urlencode "limit=1000" \
+  --data-urlencode "cursor=$NEXT_CURSOR"
 ```
 
 ## Tier Limits
