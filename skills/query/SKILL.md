@@ -187,7 +187,7 @@ Outcome markets are binary prediction markets (e.g. "Will BTC be >= $X by date Y
 
 ### Hyperliquid Spot (`/v1/hyperliquid/spot`)
 
-The authenticated inventory has 326 Hyperliquid Spot rows (HYPE-USDC, PURR-USDC, AAPL-USDC, ...). Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, open interest, or liquidations**. Spot candles are served from 2025-03-22T10:50:22Z through a dedicated OHLCV route. Use spot for pair discovery, candles, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
+Spot pairs include HYPE-USDC, PURR-USDC and AAPL-USDC; call `GET /pairs` for the current set. Symbols are **dashed canonical** (`BASE-QUOTE`); the server resolves to the wire format (`PURR/USDC`, `@107`) internally. Spot has **no funding rates, open interest, or liquidations**. Spot candles are served from 2025-03-22T10:50:22Z through a dedicated OHLCV route. Use spot for pair discovery, candles, current and historical L2 orderbooks, fills, L4 reconstruction, order lifecycle, and TWAP execution status.
 
 Coverage:
 - **Candles**: served from 2025-03-22T10:50:22Z at `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, and `1w`; maximum `limit` is 1000 and `next_cursor` is opaque.
@@ -197,7 +197,7 @@ Coverage:
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
-| `GET /pairs` | -- | List current Spot pairs; authenticated inventory has 326 rows |
+| `GET /pairs` | -- | List current Spot pairs |
 | `GET /pairs/{symbol}` | -- | Single pair detail (e.g. `HYPE-USDC`) |
 | `GET /candles/{symbol}` | `start`, `end`, `limit`, `cursor`, `interval` | OHLCV candles from 2025-03-22T10:50:22Z; intervals `1m` through `1w`; max `limit` 1000; cursor is opaque |
 | `GET /orderbook/{symbol}` | `timestamp`, `depth` | Current L2 orderbook (live from 2026-05-05) |
