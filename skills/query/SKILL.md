@@ -15,7 +15,7 @@ metadata: {"openclaw":{"requires":{"env":["OXARCHIVE_API_KEY"]},"primaryEnv":"OX
 
 # 0xArchive API Skill
 
-Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive covers two venues: **Hyperliquid** and **Lighter**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. **Hyperliquid Spot** has 326 authenticated inventory rows at `/v1/hyperliquid/spot`. Lighter has two deployments: mainnet at `/v1/lighter` and **Robinhood Chain** at `/v1/rh-lighter`. Robinhood Chain is a second deployment of Lighter, not a third venue. Data types are route-specific: orderbooks, trades, candles, funding rates, open interest, liquidations, account positions, outcome markets, spot, TWAP, and data quality metrics.
+Query historical and real-time crypto market data from **0xArchive** using `curl`. 0xArchive covers two venues: **Hyperliquid** and **Lighter**. **HIP-3** builder perps live under the Hyperliquid namespace at `/v1/hyperliquid/hip3`. **HIP-4** outcome markets (binary prediction markets) live at `/v1/hyperliquid/hip4`. **Hyperliquid Spot** lives at `/v1/hyperliquid/spot`. Lighter has two deployments: mainnet at `/v1/lighter` and **Robinhood Chain** at `/v1/rh-lighter`. Robinhood Chain is a second deployment of Lighter, not a third venue. Data types are route-specific: orderbooks, trades, candles, funding rates, open interest, liquidations, account positions, outcome markets, spot, TWAP, and data quality metrics.
 
 Orderbook depth limits apply to L2 snapshot endpoints only.
 
