@@ -4,7 +4,7 @@ Agent-ready 0xArchive market data prompts with no runtime dependency beyond `cur
 
 0xArchive is granular market data infrastructure for two venues: Hyperliquid and Lighter. Hyperliquid includes core perps, HIP-3 builder perps, HIP-4 outcome markets, and Hyperliquid Spot; HIP-3, HIP-4, and Spot stay under the Hyperliquid namespace. Lighter has two deployments: mainnet (`/v1/lighter`) and Robinhood Chain (`/v1/rh-lighter`, USDG-quoted perps and spot such as `AAPL-USDG`). Account positions are available on Hyperliquid core, HIP-3, and both Lighter deployments. This repository ships the local skill package for Claude Code, ChatGPT Codex, and other skill-capable coding-agent environments.
 
-Use this repo when Claude Code, ChatGPT Codex, or another local skill-capable coding agent needs the fastest route from `X-API-Key` to one live market-data answer. Use [AI Clients](https://www.0xarchive.io/docs/ai-clients) to choose between skills, MCP, CLI, markdown docs, `llms.txt`, OpenAPI, and other Claude Code or ChatGPT Codex routes.
+Use this repo when Claude Code, ChatGPT Codex, or another local skill-capable coding agent needs the fastest route from `X-API-Key` to one live market-data answer. Use [AI Clients](https://docs.0xarchive.io/ai-clients) to choose between skills, MCP, CLI, markdown docs, `llms.txt`, OpenAPI, and other Claude Code or ChatGPT Codex routes.
 
 ## First Answer
 
@@ -151,7 +151,7 @@ For file-based historical pulls, use the [Data Catalog](https://www.0xarchive.io
 - [TypeScript SDK](https://github.com/0xArchiveIO/sdk-typescript)
 - [Rust SDK](https://github.com/0xArchiveIO/sdk-rust)
 - [CLI](https://github.com/0xArchiveIO/0xarchive-cli)
-- [MCP Server](https://mcp.0xarchive.io)
+- [MCP Server](https://docs.0xarchive.io/mcp-server)
 - [Examples](https://github.com/0xArchiveIO/examples)
 
 ## Requirements
@@ -161,8 +161,8 @@ For file-based historical pulls, use the [Data Catalog](https://www.0xarchive.io
 
 ## Next Paths
 
-- First authenticated route: [Quick Start](https://www.0xarchive.io/docs/quick-start)
-- Skill/MCP/agent choice: [AI Clients](https://www.0xarchive.io/docs/ai-clients)
-- CLI for Claude Code, ChatGPT Codex, and other shell-first agent work: [CLI docs](https://www.0xarchive.io/docs/cli)
+- First authenticated route: [Quick Start](https://docs.0xarchive.io/quickstart)
+- Skill/MCP/agent choice: [AI Clients](https://docs.0xarchive.io/ai-clients)
+- CLI for Claude Code, ChatGPT Codex, and other shell-first agent work: [CLI docs](https://docs.0xarchive.io/cli)
 - Plans and limits: [Pricing](https://www.0xarchive.io/pricing)
 - Status and changes: [Status](https://www.0xarchive.io/status), [Changelog](https://www.0xarchive.io/changelog)
