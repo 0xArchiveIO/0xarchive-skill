@@ -66,7 +66,7 @@ A venue that does not offer a data type answers 404 `unsupported_for_venue`, nam
 | Scope | Path prefix | Coin format | Examples |
 |----------|-------------|-------------|---------|
 | Hyperliquid | `/v1/hyperliquid` | UPPERCASE | `BTC`, `ETH`, `SOL` |
-| Hyperliquid HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `km:US500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
+| Hyperliquid HIP-3 | `/v1/hyperliquid/hip3` | Case-sensitive, `builder:NAME` | `xyz:SP500`, `xyz:GOLD`, `hyna:BTC`, `vntl:SPACEX`, `flx:TSLA`, `cash:NVDA` |
 | Hyperliquid HIP-4 | `/v1/hyperliquid/hip4` | Bare numeric `<10*outcome_id + side>` (legacy `#0` / `%230` also accepted) | `0`, `1`, `10`, `11` |
 | Hyperliquid Spot | `/v1/hyperliquid/spot` | Dashed canonical `BASE-QUOTE` | `HYPE-USDC`, `PURR-USDC`, `AAPL-USDC` |
 | Lighter (mainnet) | `/v1/lighter` | UPPERCASE | `BTC`, `ETH` |
@@ -154,7 +154,7 @@ Some routes add optional `meta` fields. Lighter trades (both deployments) carry 
 
 ### HIP-3 (`/v1/hyperliquid/hip3`)
 
-Coin names are **case-sensitive** and carry the builder prefix (e.g., `km:US500`, `xyz:XYZ100`). Builders list and delist markets over time; call `GET /instruments` for the current set. Trades and oracle prices begin 2025-10-13; candles and liquidations 2025-12-22; native L2, funding, and OI 2026-02-16; L4 diffs and order-lifecycle rows 2026-03-10; reconstructable checkpoints and point-in-time state can begin later by symbol. A range that starts before a dataset's first row is served from that row. All HIP-3 symbols are available on every tier.
+Coin names are **case-sensitive** and carry the builder prefix (e.g., `xyz:SP500`, `xyz:XYZ100`). Builders list and delist markets over time; call `GET /instruments` for the current set. Trades and oracle prices begin 2025-10-13; candles and liquidations 2025-12-22; native L2, funding, and OI 2026-02-16; L4 diffs and order-lifecycle rows 2026-03-10; reconstructable checkpoints and point-in-time state can begin later by symbol. A range that starts before a dataset's first row is served from that row. All HIP-3 symbols are available on every tier.
 
 | Endpoint | Params | Notes |
 |----------|--------|-------|
@@ -713,10 +713,10 @@ NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
   "https://api.0xarchive.io/v1/hyperliquid/orders/BTC/history?start=$HOUR_AGO&end=$NOW&triggered=true&limit=100" | jq '.data'
 
-# HIP-3 km:US500 full-depth L2 history, 50 levels per side
+# HIP-3 xyz:SP500 full-depth L2 history, 50 levels per side
 NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
-  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500/l2/history?start=$HOUR_AGO&end=$NOW&depth=50&limit=10" | jq '.data'
+  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/xyz:SP500/l2/history?start=$HOUR_AGO&end=$NOW&depth=50&limit=10" | jq '.data'
 
 # List Hyperliquid instruments
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
@@ -750,19 +750,19 @@ NOW=$(( $(date +%s) * 1000 )); MONTH_AGO=$(( NOW - 2592000000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
   "https://api.0xarchive.io/v1/hyperliquid/funding/ETH?start=$MONTH_AGO&end=$NOW&interval=4h" | jq '.data'
 
-# HIP-3 km:US500 current orderbook
+# HIP-3 xyz:SP500 current orderbook
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
-  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500" | jq '.data'
+  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/xyz:SP500" | jq '.data'
 
-# HIP-3 km:US500 orderbook history
+# HIP-3 xyz:SP500 orderbook history
 NOW=$(( $(date +%s) * 1000 )); HOUR_AGO=$(( NOW - 3600000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
-  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/km:US500/history?start=$HOUR_AGO&end=$NOW&limit=10" | jq '.data'
+  "https://api.0xarchive.io/v1/hyperliquid/hip3/orderbook/xyz:SP500/history?start=$HOUR_AGO&end=$NOW&limit=10" | jq '.data'
 
-# HIP-3 km:US500 candles (last 24h, 1h interval)
+# HIP-3 xyz:SP500 candles (last 24h, 1h interval)
 NOW=$(( $(date +%s) * 1000 )); DAY_AGO=$(( NOW - 86400000 ))
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \
-  "https://api.0xarchive.io/v1/hyperliquid/hip3/candles/km:US500?start=$DAY_AGO&end=$NOW&interval=1h" | jq '.data'
+  "https://api.0xarchive.io/v1/hyperliquid/hip3/candles/xyz:SP500?start=$DAY_AGO&end=$NOW&interval=1h" | jq '.data'
 
 # HIP-4 list all outcome markets
 curl -s -H "x-api-key: $OXARCHIVE_API_KEY" -H "0xArchive-Version: 2026-10-01" \

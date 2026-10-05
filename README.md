@@ -66,7 +66,7 @@ Shown in the Claude Code form. In ChatGPT Codex, write `$0xarchive` in place of 
 | `/0xarchive BTC funding rate` | Current funding rate for BTC |
 | `/0xarchive ETH 4h candles last week` | Historical OHLCV candles |
 | `/0xarchive SOL liquidations last 24h` | Recent liquidation events |
-| `/0xarchive km:US500 trades last hour` | Hyperliquid HIP-3 trades |
+| `/0xarchive xyz:SP500 trades last hour` | Hyperliquid HIP-3 trades |
 | `/0xarchive system health` | Data quality status across venue APIs |
 | `/0xarchive BTC open interest on Lighter` | Lighter open-interest history |
 | `/0xarchive AAPL-USDG orderbook on Lighter Robinhood Chain` | Lighter on Robinhood Chain L2 order book |
