@@ -6,71 +6,52 @@ Agent-ready 0xArchive market data prompts with no runtime dependency beyond `cur
 
 Use this repo when Claude Code, ChatGPT Codex, or another local skill-capable coding agent needs the fastest route from `X-API-Key` to one live market-data answer. Use [AI Clients](https://docs.0xarchive.io/ai-clients) to choose between skills, MCP, CLI, markdown docs, `llms.txt`, OpenAPI, and other Claude Code or ChatGPT Codex routes.
 
-## First Answer
-
-### Claude Code and ChatGPT Codex install
+## Install
 
 ```bash
 git clone https://github.com/0xArchiveIO/0xarchive-skill.git
 
-# Claude Code
+# Claude Code: project skill
 mkdir -p .claude/skills/0xarchive
 cp 0xarchive-skill/skills/query/SKILL.md .claude/skills/0xarchive/SKILL.md
 
-# ChatGPT Codex repo-scoped skill
+# ChatGPT Codex: repo-scoped skill
 mkdir -p .agents/skills/0xarchive
 cp 0xarchive-skill/skills/query/SKILL.md .agents/skills/0xarchive/SKILL.md
 
 export OXARCHIVE_API_KEY="0xa_your_api_key"
 ```
 
-Then ask:
+For a skill available in every project, copy it to `~/.claude/skills/0xarchive/` (Claude Code) or `~/.agents/skills/0xarchive/` (ChatGPT Codex) instead.
 
-```text
-/0xarchive:query BTC funding rate
-```
-
-Expected result: current or recent 0xArchive market data, or a direct auth/configuration error.
-
-If your workflow already manages skills through OpenClaw, install the same 0xArchive skill with:
+If your workflow already manages skills through OpenClaw, install the same skill with:
 
 ```bash
 openclaw install 0xarchive
 ```
 
-Use the local `.claude` or `.agents` paths above for Claude Code and ChatGPT Codex installs.
+## First Answer
+
+The skill is named `0xarchive`. How you call it depends on the client:
+
+| Client | Call it with | Example |
+| --- | --- | --- |
+| Claude Code | `/0xarchive` | `/0xarchive BTC funding rate` |
+| ChatGPT Codex CLI or IDE extension | `$0xarchive`, or pick it from `/skills` | `$0xarchive BTC funding rate` |
+
+Both clients can also load the skill on their own when a request matches its description, so a plain question such as "What is the BTC funding rate on Hyperliquid?" works too.
+
+Expected result: current or recent 0xArchive market data, or a direct auth/configuration error.
 
 ## Agent Integration Requirements
 
 | Agent surface | Requirement | Setup mechanic |
 | --- | --- | --- |
-| Claude Code | Local skills enabled | Clone or copy the skill into `.claude/skills/0xarchive` |
-| ChatGPT Codex | ChatGPT Codex with skills enabled | Clone or copy the skill into `.agents/skills/0xarchive` in the target repo where applicable, or use the skill path your Codex client documents |
-| Both coding agents | `OXARCHIVE_API_KEY`, `curl`, and `jq` | Ask one `/0xarchive` query first, then expand into CLI, MCP, SDKs, or Data Catalog exports |
+| Claude Code | Local skills enabled | Copy the skill into `.claude/skills/0xarchive` |
+| ChatGPT Codex | ChatGPT Codex with skills enabled | Copy the skill into `.agents/skills/0xarchive` in the target repo, or into `~/.agents/skills/0xarchive` for every repo |
+| Both coding agents | `OXARCHIVE_API_KEY`, `curl`, and `jq` | Ask one question first, then expand into CLI, MCP, SDKs, or Data Catalog exports |
 | OpenClaw | Optional install helper | `openclaw install 0xarchive` |
 | No local skill support | Shell, MCP, or docs access | Use the CLI, MCP where supported, SDKs, `llms.txt`, OpenAPI, or markdown docs |
-
-### Standalone install
-
-```bash
-git clone https://github.com/0xArchiveIO/0xarchive-skill.git
-
-# Claude Code
-mkdir -p .claude/skills/0xarchive
-cp 0xarchive-skill/skills/query/SKILL.md .claude/skills/0xarchive/SKILL.md
-
-# ChatGPT Codex repo-scoped skill
-mkdir -p .agents/skills/0xarchive
-cp 0xarchive-skill/skills/query/SKILL.md .agents/skills/0xarchive/SKILL.md
-
-export OXARCHIVE_API_KEY="0xa_your_api_key"
-```
-
-Then ask:
-
-```text
-/0xarchive:query BTC orderbook
-```
 
 ## Claude Code And ChatGPT Codex
 
@@ -78,19 +59,21 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 
 ## Usage Examples
 
+Shown in the Claude Code form. In ChatGPT Codex, write `$0xarchive` in place of `/0xarchive`.
+
 | Command | What you get |
 |---------|-------------|
-| `/0xarchive:query BTC funding rate` | Current funding rate for BTC |
-| `/0xarchive:query ETH 4h candles last week` | Historical OHLCV candles |
-| `/0xarchive:query SOL liquidations last 24h` | Recent liquidation events |
-| `/0xarchive:query km:US500 trades last hour` | Hyperliquid HIP-3 trades |
-| `/0xarchive:query system health` | Data quality status across venue APIs |
-| `/0xarchive:query BTC open interest on Lighter` | Lighter open-interest history |
-| `/0xarchive:query AAPL-USDG orderbook on Lighter Robinhood Chain` | Lighter on Robinhood Chain L2 order book |
-| `/0xarchive:query positions for wallet 0x...` | Current Hyperliquid positions and account summary |
-| `/0xarchive:query largest BTC longs` | Market-wide positions for one symbol, largest first |
-| `/0xarchive:query HIP-4 coin 0 candles last day` | HIP-4 implied-probability OHLCV |
-| `/0xarchive:query verify wallet 0x...` | SIWE sign-in for an existing wallet account |
+| `/0xarchive BTC funding rate` | Current funding rate for BTC |
+| `/0xarchive ETH 4h candles last week` | Historical OHLCV candles |
+| `/0xarchive SOL liquidations last 24h` | Recent liquidation events |
+| `/0xarchive xyz:SP500 trades last hour` | Hyperliquid HIP-3 trades |
+| `/0xarchive system health` | Data quality status across venue APIs |
+| `/0xarchive BTC open interest on Lighter` | Lighter open-interest history |
+| `/0xarchive AAPL-USDG orderbook on Lighter Robinhood Chain` | Lighter on Robinhood Chain L2 order book |
+| `/0xarchive positions for wallet 0x...` | Current Hyperliquid positions and account summary |
+| `/0xarchive largest BTC longs` | Market-wide positions for one symbol, largest first |
+| `/0xarchive HIP-4 outcome candles last day` | HIP-4 implied-probability OHLCV |
+| `/0xarchive verify wallet 0x...` | SIWE sign-in for an existing wallet account |
 
 ## Data Available
 
@@ -99,46 +82,16 @@ Claude Code and ChatGPT Codex should both start from the same 0xArchive product 
 - **L3 Orderbooks** -- Lighter mainnet order-level snapshots with owner filtering, capped at 250 orders per side from March 5, 2026. Lighter on Robinhood Chain has no L3.
 - **Orders** -- Order history with user attribution, order flow aggregation, and TP/SL history on Hyperliquid families, separate from the resting L4 book.
 - **Trades** -- Fill-level rows. Per-fill Lighter trade rows begin January 17, 2025, exact starts vary by market, and maker/taker context is included where served. Lighter on Robinhood Chain trades begin June 26, 2026. Both Lighter deployments serve finalized trades up to `meta.finalized_through` and preliminary rows on `/recent`. HIP-3 trades begin October 13, 2025.
-- **Candles** -- OHLCV aggregations from 1m to 1w where served. Lighter candles begin August 1, 2025; Lighter on Robinhood Chain candles begin June 26, 2026; HIP-4 implied-probability candles begin May 2, 2026; Hyperliquid Spot candles begin exactly 2025-03-22T10:50:22Z and accept a maximum limit of 10,000 with opaque cursors.
+- **Candles** -- OHLCV aggregations from 1m to 1w where served. Lighter candles begin August 1, 2025; Lighter on Robinhood Chain candles begin June 26, 2026; HIP-4 implied-probability candles begin May 2, 2026; Hyperliquid Spot candles begin exactly 2025-03-22T10:50:00Z and accept a maximum limit of 10,000 with opaque cursors.
 - **Funding Rates** -- Hyperliquid core at roughly one minute. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025. Both update at roughly 10 seconds. Lighter on Robinhood Chain perps begin August 22, 2026. HIP-4 and Spot have no funding.
 - **Open Interest** -- Hyperliquid core, HIP-3, Lighter, and HIP-4 outcome-side OI. HIP-3 begins February 16, 2026; Lighter begins August 25, 2025; Lighter on Robinhood Chain perps begin August 22, 2026; HIP-4 begins May 2, 2026 and updates at roughly 10 seconds.
 - **Liquidations** -- Completed-event history on Hyperliquid and HIP-3; Lighter live-captured liquidation-event and aggregated-volume routes from June 10, 2026; Lighter on Robinhood Chain liquidations from June 26, 2026, the venue's first trade, with rows before August 22, 2026 backfilled from the venue's finalized export.
 - **Account Positions** -- Open perp positions by Hyperliquid wallet or Lighter account index: current, as of any instant, hourly history, a fill-by-fill change log, account summaries, and market-wide positioning. Change logs begin May 25, 2025 (Hyperliquid core), October 13, 2025 (HIP-3), January 17, 2025 (Lighter mainnet), and June 26, 2026 (Lighter on Robinhood Chain). Billed like trades: one credit per 1,000 rows.
-- **WebSocket** -- Live and replay support is channel-specific. Lighter orderbook, trades, open interest, and funding stream live on `wss://api.0xarchive.io/ws` for both deployments (`lighter_*` and `rh_lighter_*`); Lighter candles and L3 orderbooks are replay-only. L4 channels replay on Hyperliquid core, HIP-3, HIP-4, and Spot. `GET /v1/capabilities` lists live and replay support per venue and data type.
+- **WebSocket** -- Live and replay support is channel-specific. Lighter orderbook, trades, open interest, and funding stream live on `wss://api.0xarchive.io/ws` for both deployments (`lighter_*` and `rh_lighter_*`); Lighter candles and L3 orderbooks are replay-only. L4 channels stream live and replay on Hyperliquid core, HIP-3, HIP-4, and Spot, and the full-depth order book channels (`orderbook_full`, `hip3_orderbook_full`) do the same on Hyperliquid core and HIP-3. HIP-4 order book and open interest channels are replay-only, and Spot TWAP is served over REST only. `GET /v1/capabilities` lists live and replay support per venue and data type.
 - **Price History** -- Mark, oracle, and mid price over time
 - **Freshness** -- Per-data-type lag and last-updated timestamps
 - **Market Summary** -- Price, funding, OI, volume, and liquidations in one call
 - **Data Quality** -- Coverage, latency, SLA, incidents
-
-## Install
-
-For Claude Code or ChatGPT Codex with skills enabled, copy the skill into the local skill directory your client reads:
-
-```bash
-git clone https://github.com/0xArchiveIO/0xarchive-skill.git
-
-# Claude Code
-mkdir -p .claude/skills/0xarchive
-cp 0xarchive-skill/skills/query/SKILL.md .claude/skills/0xarchive/SKILL.md
-
-# ChatGPT Codex repo-scoped skill
-mkdir -p .agents/skills/0xarchive
-cp 0xarchive-skill/skills/query/SKILL.md .agents/skills/0xarchive/SKILL.md
-```
-
-Set your API key:
-
-```bash
-export OXARCHIVE_API_KEY="0xa_your_api_key"
-```
-
-Then use `/0xarchive` in that skill-capable client, e.g.:
-
-```
-/0xarchive BTC funding rate
-/0xarchive ETH 4h candles last week
-/0xarchive system health status
-```
 
 ## Data Catalog
 
